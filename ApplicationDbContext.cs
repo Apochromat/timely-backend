@@ -13,7 +13,19 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid, Identity
     public DbSet<User> Users { get; set; }
     public override DbSet<Role> Roles { get; set; }
     public DbSet<UserRole> UserRoles { get; set; }
-    
+    public DbSet<Classroom> Classrooms { get; set; }
+    public DbSet<Group> Groups { get; set; }
+    public DbSet<Lesson> Lessons { get; set; }
+    public DbSet<LessonName> LessonNames { get; set; }
+    public DbSet<LessonTag> LessonTags { get; set; }
+    public DbSet<Teacher> Teachers { get; set; }
+    public DbSet<TimeInterval> TimeInterval { get; set; }
+
+
+
+
+
+
     protected override void OnModelCreating(ModelBuilder modelBuilder) {
         base.OnModelCreating(modelBuilder);
         modelBuilder.Entity<User>(e => {
@@ -33,6 +45,8 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid, Identity
                 .HasForeignKey(x => x.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
+        /*modelBuilder.Entity<Classroom>().HasKey(x => x.Id);
+        modelBuilder.Entity<Group>().HasKey(x => x.Id);*/
     }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) {
