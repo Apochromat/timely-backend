@@ -1,6 +1,7 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using timely_backend.Models;
 using timely_backend.Models.DTO;
@@ -71,8 +72,20 @@ namespace timely_backend.Services {
             _logger.LogInformation("Successful login");
 
             return new TokenResponse(new JwtSecurityTokenHandler().WriteToken(jwt),
-                identity.Claims.Where(c => c.Type == ClaimTypes.Email).Select(c => c.Value).SingleOrDefault(""),
+                identity.Claims.Where(c => c.Type == ClaimTypes.Name).Select(c => c.Value).SingleOrDefault(""),
                 identity.Claims.Where(c => c.Type == ClaimTypes.Role).Select(c => c.Value).First().Split(","));
+        }
+        
+        /// <summary>
+        /// Returns user`s profile
+        /// </summary>
+        public async Task<UserProfile> GetProfile(string email) {
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null) throw new KeyNotFoundException("User not found");
+
+            user = _userManager.Users.Include( u => u.Roles).ThenInclude(r => r.Role).First(u => u.Id == user.Id);
+
+            return ModelConverter.ToUserProfile(user);
         }
 
         private async Task<ClaimsIdentity?> GetIdentity(string email, string password) {
@@ -85,11 +98,11 @@ namespace timely_backend.Services {
             if (!result.Succeeded) return null;
 
             var claims = new List<Claim> {
-                new Claim(ClaimTypes.Email, user.Email ?? ""),
+                new Claim(ClaimTypes.Name, user.Email ?? ""),
                 new Claim(ClaimTypes.Role, string.Join(",", await _userManager.GetRolesAsync(user)))
             };
 
-            return new ClaimsIdentity(claims, "Token", ClaimTypes.Email, ClaimTypes.Role);
+            return new ClaimsIdentity(claims, "Token", ClaimTypes.Name, ClaimTypes.Role);
         }
     }
 }

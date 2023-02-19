@@ -25,5 +25,18 @@ namespace timely_backend {
             };
             return temp;
         }
+
+        /// <summary>
+        /// Convert User to UserProfile
+        /// </summary>
+        public static UserProfile ToUserProfile(User user) {
+            var temp = new UserProfile {
+                UserName = user.UserName,
+                FullName = user.FullName,
+                Email = user.Email,
+                Roles = user.Roles.Select(r => r.Role).Select(role => role.Name.ToString()).ToList()
+            };
+            return temp;
+        }
     }
 }

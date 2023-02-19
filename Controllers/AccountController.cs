@@ -105,10 +105,11 @@ namespace timely_backend.Controllers {
         /// <response code = "401" > Unauthorized</response>
         /// <response code = "500" > Internal Server Error</response>
         [HttpGet]
+        [Authorize(AuthenticationSchemes = "Bearer")]
         [Route("profile")]
-        public async Task<ActionResult> GetAccountProfile() {
+        public async Task<ActionResult<UserProfile>> GetAccountProfile() {
             try {
-                return Ok();
+                return await _account.GetProfile(User.Identity.Name);
             }
             catch (KeyNotFoundException e) {
                 _logger.LogError(e,
