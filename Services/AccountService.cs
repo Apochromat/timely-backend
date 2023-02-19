@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
+﻿using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.IdentityModel.Tokens;
 using timely_backend.Models;
 using timely_backend.Models.DTO;
 
@@ -7,13 +9,15 @@ namespace timely_backend.Services {
     public class AccountService : IAccountService {
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
+        private readonly RoleManager<Role> _roleManager;
         private readonly ILogger<AccountService> _logger;
         private readonly ApplicationDbContext _context;
 
         public AccountService(ILogger<AccountService> logger, ApplicationDbContext context,
-            UserManager<User> userManager, SignInManager<User> signInManager) {
+            UserManager<User> userManager, SignInManager<User> signInManager, RoleManager<Role> roleManager) {
             _userManager = userManager;
             _signInManager = signInManager;
+            _roleManager = roleManager;
             _logger = logger;
             _context = context;
         }
@@ -21,14 +25,15 @@ namespace timely_backend.Services {
         /// <summary>
         /// Register a new user
         /// </summary>
-        public async Task<TokenResponse> register(UserRegisterModel userRegisterModel) {
+        public async Task<TokenResponse> Register(UserRegisterModel userRegisterModel) {
             if (userRegisterModel.Email == null) {
                 throw new ArgumentNullException(nameof(userRegisterModel.Email));
             }
+
             if (userRegisterModel.Password == null) {
                 throw new ArgumentNullException(nameof(userRegisterModel.Password));
             }
-            
+
             if (await _userManager.FindByEmailAsync(userRegisterModel.Email) != null)
                 throw new ArgumentException("User with this email already exists");
 
@@ -40,9 +45,51 @@ namespace timely_backend.Services {
                 return new TokenResponse("Successful", "register", null);
                 //return await login(new LoginCredentials { Email = userRegisterModel.Email, Password = userRegisterModel.Password });
             }
-            
+
             var errors = string.Join(", ", result.Errors.Select(x => x.Description));
             throw new InvalidOperationException(errors);
+        }
+
+        /// <summary>
+        /// Log in user
+        /// </summary>
+        public async Task<TokenResponse> Login(LoginCredentials loginCredentials) {
+            var identity = await GetIdentity(loginCredentials.Email.ToLower(), loginCredentials.Password);
+            if (identity == null) {
+                throw new ArgumentException("Incorrect username or password");
+            }
+
+            var now = DateTime.UtcNow;
+            var jwt = new JwtSecurityToken(
+                issuer: JwtConfiguration.Issuer,
+                audience: JwtConfiguration.Audience,
+                notBefore: now,
+                claims: identity.Claims,
+                expires: now.Add(TimeSpan.FromMinutes(JwtConfiguration.Lifetime)),
+                signingCredentials: new SigningCredentials(JwtConfiguration.GetSymmetricSecurityKey(), SecurityAlgorithms.HmacSha256));
+            
+            _logger.LogInformation("Successful login");
+
+            return new TokenResponse(new JwtSecurityTokenHandler().WriteToken(jwt),
+                identity.Claims.Where(c => c.Type == ClaimTypes.Email).Select(c => c.Value).SingleOrDefault(""),
+                identity.Claims.Where(c => c.Type == ClaimTypes.Role).Select(c => c.Value).First().Split(","));
+        }
+
+        private async Task<ClaimsIdentity?> GetIdentity(string email, string password) {
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null) {
+                return null;
+            }
+
+            var result = await _signInManager.CheckPasswordSignInAsync(user, password, false);
+            if (!result.Succeeded) return null;
+
+            var claims = new List<Claim> {
+                new Claim(ClaimTypes.Email, user.Email ?? ""),
+                new Claim(ClaimTypes.Role, string.Join(",", await _userManager.GetRolesAsync(user)))
+            };
+
+            return new ClaimsIdentity(claims, "Token", ClaimTypes.Email, ClaimTypes.Role);
         }
     }
 }

@@ -2,6 +2,8 @@
 
 namespace timely_backend.Services {
     public interface IAccountService {
-        Task<TokenResponse> register(UserRegisterModel userRegisterModel);
+        
+        Task<TokenResponse> Register(UserRegisterModel userRegisterModel);
+        Task<TokenResponse> Login(LoginCredentials loginCredentials);
     }
 }

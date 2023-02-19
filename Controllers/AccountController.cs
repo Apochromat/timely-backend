@@ -34,7 +34,7 @@ namespace timely_backend.Controllers {
         [Route("register")]
         public async Task<ActionResult<TokenResponse>> Register([FromBody] UserRegisterModel userRegisterModel) {
             try {
-                return await _account.register(userRegisterModel);
+                return await _account.Register(userRegisterModel);
             }
             catch (InvalidOperationException e) {
                 _logger.LogError(e,
@@ -62,9 +62,9 @@ namespace timely_backend.Controllers {
         /// <response code = "500" > Internal Server Error</response>
         [HttpPost]
         [Route("login")]
-        public async Task<ActionResult> Login() {
+        public async Task<ActionResult<TokenResponse>> Login([FromBody] LoginCredentials loginCredentials) {
             try {
-                return Ok();
+                return await _account.Login(loginCredentials);
             }
             catch (ArgumentException e) {
                 _logger.LogError(e,
