@@ -19,7 +19,8 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid, Identity
     public DbSet<LessonName> LessonNames { get; set; }
     public DbSet<LessonTag> LessonTags { get; set; }
     public DbSet<Teacher> Teachers { get; set; }
-    public DbSet<TimeInterval> TimeInterval { get; set; }
+    public DbSet<TimeInterval> TimeIntervals { get; set; }
+    public DbSet<Domain> Domains { get; set; }
 
 
 
