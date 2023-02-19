@@ -87,9 +87,9 @@ namespace timely_backend.Controllers {
         /// <response code = "500" > Internal Server Error</response>
         [HttpPost]
         [Route("logout")]
-        public async Task<ActionResult> Logout() {
+        public async Task<ActionResult<Response>> Logout() {
             try {
-                return Ok();
+                return await _account.Logout(Request.Headers.Authorization);
             }
             catch (Exception e) {
                 _logger.LogError(e,

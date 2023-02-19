@@ -7,5 +7,6 @@ namespace timely_backend.Services {
         Task<UserProfile> GetProfile(string email);
         Task<Response> EditProfile(string email, UserProfileEdit userProfileEdit);
         Task<Response> EditPassword(string email, UserPasswordEdit userPasswordEdit);
+        Task<Response> Logout(string token);
     }
 }

@@ -13,9 +13,12 @@ namespace timely_backend.Services {
         private readonly RoleManager<Role> _roleManager;
         private readonly ILogger<AccountService> _logger;
         private readonly ApplicationDbContext _context;
+        private readonly ICacheService _cacheService;
 
         public AccountService(ILogger<AccountService> logger, ApplicationDbContext context,
-            UserManager<User> userManager, SignInManager<User> signInManager, RoleManager<Role> roleManager) {
+            UserManager<User> userManager, SignInManager<User> signInManager, RoleManager<Role> roleManager,
+            ICacheService cacheService) {
+            _cacheService = cacheService;
             _userManager = userManager;
             _signInManager = signInManager;
             _roleManager = roleManager;
@@ -43,8 +46,7 @@ namespace timely_backend.Services {
             var result = await _userManager.CreateAsync(user, userRegisterModel.Password);
             if (result.Succeeded) {
                 _logger.LogInformation("Successful register");
-                return new TokenResponse("Successful", "register", null);
-                //return await login(new LoginCredentials { Email = userRegisterModel.Email, Password = userRegisterModel.Password });
+                return await Login(new LoginCredentials { Email = userRegisterModel.Email, Password = userRegisterModel.Password });
             }
 
             var errors = string.Join(", ", result.Errors.Select(x => x.Description));
@@ -52,7 +54,7 @@ namespace timely_backend.Services {
         }
 
         /// <summary>
-        /// Log in user
+        /// Log user in
         /// </summary>
         public async Task<TokenResponse> Login(LoginCredentials loginCredentials) {
             var identity = await GetIdentity(loginCredentials.Email.ToLower(), loginCredentials.Password);
@@ -67,15 +69,30 @@ namespace timely_backend.Services {
                 notBefore: now,
                 claims: identity.Claims,
                 expires: now.Add(TimeSpan.FromMinutes(JwtConfiguration.Lifetime)),
-                signingCredentials: new SigningCredentials(JwtConfiguration.GetSymmetricSecurityKey(), SecurityAlgorithms.HmacSha256));
-            
+                signingCredentials: new SigningCredentials(JwtConfiguration.GetSymmetricSecurityKey(),
+                    SecurityAlgorithms.HmacSha256));
+
             _logger.LogInformation("Successful login");
 
             return new TokenResponse(new JwtSecurityTokenHandler().WriteToken(jwt),
                 identity.Claims.Where(c => c.Type == ClaimTypes.Name).Select(c => c.Value).SingleOrDefault(""),
                 identity.Claims.Where(c => c.Type == ClaimTypes.Role).Select(c => c.Value).First().Split(","));
         }
-        
+
+        /// <summary>
+        /// Disable token and log user out
+        /// </summary>
+        public async Task<Response> Logout(string token) {
+            await _cacheService.DisableToken(token);
+            
+            _logger.LogInformation("Successful logout");
+            
+            return new Response {
+                Status = "Ok",
+                Message = "Successful logout"
+            };
+        }
+
         /// <summary>
         /// Returns user`s profile
         /// </summary>
@@ -83,8 +100,9 @@ namespace timely_backend.Services {
             var user = await _userManager.FindByEmailAsync(email);
             if (user == null) throw new KeyNotFoundException("User not found");
 
-            user = _userManager.Users.Include( u => u.Roles).ThenInclude(r => r.Role).First(u => u.Id == user.Id);
-
+            user = _userManager.Users.Include(u => u.Roles).ThenInclude(r => r.Role).First(u => u.Id == user.Id);
+            
+            _logger.LogInformation("User`s profile was returned successfuly");
             return ModelConverter.ToUserProfile(user);
         }
 
@@ -97,12 +115,15 @@ namespace timely_backend.Services {
 
             user.FullName = userProfileEdit.FullName;
             await _context.SaveChangesAsync();
+            
+            _logger.LogInformation("User`s profile was modified successfully");
+            
             return new Response {
                 Status = "Ok",
                 Message = "Successfully modified"
             };
         }
-        
+
         /// <summary>
         /// Change user`s password
         /// </summary>
@@ -110,8 +131,12 @@ namespace timely_backend.Services {
             var user = await _userManager.FindByEmailAsync(email);
             if (user == null) throw new KeyNotFoundException("User not found");
 
-            var result = await _userManager.ChangePasswordAsync(user, userPasswordEdit.CurrentPassword, userPasswordEdit.NewPassword);
-            if (!result.Succeeded) throw new InvalidOperationException( string.Join(", ", result.Errors.Select(x => x.Description)));
+            var result = await _userManager.ChangePasswordAsync(user, userPasswordEdit.CurrentPassword,
+                userPasswordEdit.NewPassword);
+            if (!result.Succeeded)
+                throw new InvalidOperationException(string.Join(", ", result.Errors.Select(x => x.Description)));
+
+            _logger.LogInformation("User`s password was changed successfully");
             
             return new Response {
                 Status = "Ok",

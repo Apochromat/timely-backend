@@ -6,6 +6,9 @@ using Microsoft.OpenApi.Models;
 using Serilog;
 using System.Reflection;
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Caching.StackExchangeRedis;
 using timely_backend;
 using timely_backend.Models;
 using timely_backend.Models.Enum;
@@ -21,7 +24,18 @@ builder.Services.AddControllers().AddJsonOptions(opts => {
 
 // Connect DB
 builder.Services.AddDbContext<ApplicationDbContext>();
+
+// Add Services
+builder.Services.AddSingleton<IAuthorizationMiddlewareResultHandler, LogoutCheckAuthorizationMiddlewareResultHandler>();
 builder.Services.AddScoped<IAccountService, AccountService>();
+
+// Connect distributed cache
+builder.Services.AddSingleton<IDistributedCache, RedisCache>();
+builder.Services.AddSingleton<ICacheService, CacheService>();
+builder.Services.AddStackExchangeRedisCache(options => {
+    options.Configuration = builder.Configuration.GetConnectionString("Redis");
+    options.InstanceName = "JwtTokenCache";
+});
 
 // Add Identity
 builder.Services.AddIdentity<User, Role>()
