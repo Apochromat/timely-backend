@@ -133,15 +133,42 @@ namespace timely_backend.Controllers {
         /// <response code = "403" > Forbidden</response>
         /// <response code = "500" > Internal Server Error</response>
         [HttpPut]
+        [Authorize(AuthenticationSchemes = "Bearer")]
         [Route("profile")]
-        public async Task<ActionResult> EditAccountProfile() {
+        public async Task<ActionResult<Response>> EditAccountProfile([FromBody] UserProfileEdit userProfileEdit) {
             try {
-                return Ok();
+                return await _account.EditProfile(User.Identity.Name, userProfileEdit);
             }
             catch (KeyNotFoundException e) {
                 _logger.LogError(e,
                     $"Message: {e.Message} TraceId: {Activity.Current?.Id ?? HttpContext?.TraceIdentifier}");
                 return Problem(statusCode: 404, title: e.Message);
+            }
+            catch (Exception e) {
+                _logger.LogError(e,
+                    $"Message: {e.Message} TraceId: {Activity.Current?.Id ?? HttpContext?.TraceIdentifier}");
+                return Problem(statusCode: 500, title: "Something went wrong");
+            }
+        }
+        
+        /// <summary>
+        /// Change user profile password.
+        /// </summary>
+        /// <returns></returns>
+        /// <response code = "400" > Bad Request</response>
+        /// <response code = "401" > Unauthorized</response>
+        /// <response code = "500" > Internal Server Error</response>
+        [HttpPut]
+        [Authorize(AuthenticationSchemes = "Bearer")]
+        [Route("changePassword")]
+        public async Task<ActionResult<Response>> EditAccountPassword([FromBody] UserPasswordEdit userPasswordEdit) {
+            try {
+                return await _account.EditPassword(User.Identity.Name, userPasswordEdit);
+            }
+            catch (InvalidOperationException e) {
+                _logger.LogError(e,
+                    $"Message: {e.Message} TraceId: {Activity.Current?.Id ?? HttpContext?.TraceIdentifier}");
+                return Problem(statusCode: 400, title: e.Message);
             }
             catch (Exception e) {
                 _logger.LogError(e,

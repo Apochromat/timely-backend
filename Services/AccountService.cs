@@ -88,6 +88,37 @@ namespace timely_backend.Services {
             return ModelConverter.ToUserProfile(user);
         }
 
+        /// <summary>
+        /// Edit user`s profile
+        /// </summary>
+        public async Task<Response> EditProfile(string email, UserProfileEdit userProfileEdit) {
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null) throw new KeyNotFoundException("User not found");
+
+            user.FullName = userProfileEdit.FullName;
+            await _context.SaveChangesAsync();
+            return new Response {
+                Status = "Ok",
+                Message = "Successfully modified"
+            };
+        }
+        
+        /// <summary>
+        /// Change user`s password
+        /// </summary>
+        public async Task<Response> EditPassword(string email, UserPasswordEdit userPasswordEdit) {
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null) throw new KeyNotFoundException("User not found");
+
+            var result = await _userManager.ChangePasswordAsync(user, userPasswordEdit.CurrentPassword, userPasswordEdit.NewPassword);
+            if (!result.Succeeded) throw new InvalidOperationException( string.Join(", ", result.Errors.Select(x => x.Description)));
+            
+            return new Response {
+                Status = "Ok",
+                Message = "Password successfully changed"
+            };
+        }
+
         private async Task<ClaimsIdentity?> GetIdentity(string email, string password) {
             var user = await _userManager.FindByEmailAsync(email);
             if (user == null) {
