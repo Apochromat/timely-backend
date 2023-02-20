@@ -7,6 +7,7 @@ using System.Text.Json.Serialization;
 using timely_backend;
 using timely_backend.Models;
 using timely_backend.Models.Enums;
+using timely_backend.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,6 +19,7 @@ builder.Services.AddControllers().AddJsonOptions(opts => {
 
 // Connect DB
 builder.Services.AddDbContext<ApplicationDbContext>();
+builder.Services.AddScoped<IAdminService, AdminService>();
 
 // Add Identity
 builder.Services.AddIdentity<User, Role>()

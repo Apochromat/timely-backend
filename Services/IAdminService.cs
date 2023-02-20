@@ -4,7 +4,7 @@ using timely_backend.Models.DTO;
 namespace timely_backend.Services
 {
 
-    public interface IadminService
+    public interface IAdminService
     {
         //domain
         Task CreateDomain(DomainDTO domain);

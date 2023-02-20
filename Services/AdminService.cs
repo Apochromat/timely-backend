@@ -4,7 +4,7 @@ using timely_backend.Models.DTO;
 
 namespace timely_backend.Services
 {
-    public class AdminService : IadminService
+    public class AdminService : IAdminService
     {
         private readonly ApplicationDbContext _context;
         private readonly ILogger<AdminService> _logger;
@@ -53,7 +53,7 @@ namespace timely_backend.Services
             var domain = await _context.Domains.FindAsync(id);
             if (domain == null)
             {
-                throw new ArgumentNullException("this domain does not exist");
+                throw new KeyNotFoundException("this domain does not exist");
             }
             _context.Domains.Remove(domain);
             await _context.SaveChangesAsync();
@@ -100,7 +100,7 @@ namespace timely_backend.Services
             var teacher = await _context.Teachers.FindAsync(id);
             if (teacher == null)
             {
-                throw new ArgumentNullException("this teacher does not exist");
+                throw new KeyNotFoundException("this teacher does not exist");
             }
             _context.Teachers.Remove(teacher);
             await _context.SaveChangesAsync();
