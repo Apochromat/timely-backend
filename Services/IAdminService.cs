@@ -16,8 +16,8 @@ namespace timely_backend.Services
         Task EditTeacher(TeacherDTO teacher, Guid id);
         Task DeleteTeacher(Guid id);
         //classroom
-        Task CreateClassroom(classroomDTO classroom);
-        Task EditClassroom(classroomDTO classroom, Guid id);
+        Task CreateClassroom(ClassroomDTO classroom);
+        Task EditClassroom(ClassroomDTO classroom, Guid id);
         Task DeleteClassroom(Guid id);
         //lessonName
         Task CreateLessonName(LessonNameDTO lessonName);
