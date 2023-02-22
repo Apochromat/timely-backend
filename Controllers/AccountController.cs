@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 using timely_backend.Models.DTO;
+using timely_backend.Models.Enum;
 using timely_backend.Services;
 
 namespace timely_backend.Controllers {
@@ -231,6 +232,13 @@ namespace timely_backend.Controllers {
                     $"Message: {e.Message} TraceId: {Activity.Current?.Id ?? HttpContext?.TraceIdentifier}");
                 return Problem(statusCode: 500, title: "Something went wrong");
             }
+        }
+        
+        [HttpGet]
+        [Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Administrator)]
+        [Route("am-i-admin")]
+        public async Task<ActionResult<Response>> AdminCheck() {
+            return Ok("Yes my master");
         }
     }
 }

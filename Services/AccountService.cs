@@ -153,7 +153,7 @@ namespace timely_backend.Services {
             var user = await _userManager.FindByEmailAsync(email);
             if (user == null) throw new KeyNotFoundException("User not found");
 
-            user = _userManager.Users.Include(u => u.Roles).ThenInclude(r => r.Role).First(u => u.Id == user.Id);
+            user = _userManager.Users.Include(u => u.Roles).ThenInclude(r => r.Role).First();
             
             _logger.LogInformation("User`s profile was returned successfuly");
             return ModelConverter.ToUserProfile(user);
@@ -207,9 +207,12 @@ namespace timely_backend.Services {
             if (!result.Succeeded) return null;
 
             var claims = new List<Claim> {
-                new Claim(ClaimTypes.Name, user.Email ?? ""),
-                new Claim(ClaimTypes.Role, string.Join(",", await _userManager.GetRolesAsync(user)))
+                new Claim(ClaimTypes.Name, user.Email ?? "")
             };
+
+            foreach (var role in await _userManager.GetRolesAsync(user)) {
+                claims.Add(new Claim(ClaimTypes.Role, role));
+            }
 
             return new ClaimsIdentity(claims, "Token", ClaimTypes.Name, ClaimTypes.Role);
         }
