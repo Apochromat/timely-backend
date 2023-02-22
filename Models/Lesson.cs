@@ -11,6 +11,8 @@ namespace timely_backend.Models
         public Group Group { get; set; }
         public Teacher Teacher { get; set; }
         public TimeInterval TimeInterval { get; set; }
+        public Classroom Classroom { get; set; }
+        public DateTime Date { get; set; }
         public Guid? ChainId { get; set; }
        
     }

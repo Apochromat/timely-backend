@@ -20,7 +20,7 @@ builder.Services.AddControllers().AddJsonOptions(opts => {
 // Connect DB
 builder.Services.AddDbContext<ApplicationDbContext>();
 builder.Services.AddScoped<IAdminService, AdminService>();
-
+builder.Services.AddScoped<IScheduleService, ScheduleService>();
 // Add Identity
 builder.Services.AddIdentity<User, Role>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
