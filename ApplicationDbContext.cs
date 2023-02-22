@@ -1,5 +1,4 @@
 ﻿using timely_backend.Models;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -7,7 +6,9 @@ using Microsoft.EntityFrameworkCore;
 namespace timely_backend;
 
 public class ApplicationDbContext : IdentityDbContext<User, Role, Guid, IdentityUserClaim<Guid>, UserRole, IdentityUserLogin<Guid>, IdentityRoleClaim<Guid>, IdentityUserToken<Guid>> {
-    public ApplicationDbContext() : base() {
+    private readonly IConfiguration _configuration;
+    public ApplicationDbContext(IConfiguration configuration) : base() {
+        _configuration = configuration;
     }
 
     public DbSet<User> Users { get; set; }
@@ -36,10 +37,6 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid, Identity
     }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) {
-        IConfigurationRoot configuration = new ConfigurationBuilder()
-                .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
-                .AddJsonFile("appsettings.json")
-                .Build();
-        optionsBuilder.UseMySql(configuration.GetConnectionString("MySQLDatabase"), new MySqlServerVersion(new Version(8, 0, 31)));
+        optionsBuilder.UseMySql(_configuration.GetConnectionString("MySQLDatabase"), new MySqlServerVersion(new Version(8, 0, 31)));
     }
 }

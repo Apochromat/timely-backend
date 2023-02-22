@@ -7,6 +7,7 @@ using Serilog;
 using System.Reflection;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.StackExchangeRedis;
 using timely_backend;
@@ -28,6 +29,7 @@ builder.Services.AddDbContext<ApplicationDbContext>();
 // Add Services
 builder.Services.AddSingleton<IAuthorizationMiddlewareResultHandler, LogoutCheckAuthorizationMiddlewareResultHandler>();
 builder.Services.AddScoped<IAccountService, AccountService>();
+builder.Services.AddScoped<IEmailSender, EmailSender>();
 
 // Connect distributed cache
 builder.Services.AddSingleton<IDistributedCache, RedisCache>();
@@ -38,8 +40,9 @@ builder.Services.AddStackExchangeRedisCache(options => {
 });
 
 // Add Identity
-builder.Services.AddIdentity<User, Role>()
+builder.Services.AddIdentity<User, Role>(options => { options.SignIn.RequireConfirmedEmail = false; })
     .AddEntityFrameworkStores<ApplicationDbContext>()
+    .AddDefaultTokenProviders()
     .AddSignInManager<SignInManager<User>>()
     .AddUserManager<UserManager<User>>()
     .AddRoleManager<RoleManager<Role>>();
@@ -109,7 +112,7 @@ if (app.Environment.IsDevelopment() || true) {
     app.UseSwaggerUI();
 }
 
-//app.UseHttpsRedirection();
+app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();

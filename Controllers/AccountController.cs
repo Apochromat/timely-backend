@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 using timely_backend.Models.DTO;
@@ -42,6 +41,63 @@ namespace timely_backend.Controllers {
                 return Problem(statusCode: 400, title: e.Message);
             }
             catch (ArgumentException e) {
+                _logger.LogError(e,
+                    $"Message: {e.Message} TraceId: {Activity.Current?.Id ?? HttpContext.TraceIdentifier}");
+                return Problem(statusCode: 409, title: e.Message);
+            }
+            catch (Exception e) {
+                _logger.LogError(e,
+                    $"Message: {e.Message} TraceId: {Activity.Current?.Id ?? HttpContext.TraceIdentifier}");
+                return Problem(statusCode: 500, title: "Something went wrong");
+            }
+        }
+        
+        /// <summary>
+        /// Send Email confirmation letter
+        /// </summary>
+        /// <returns></returns>
+        /// <response code = "400" > Bad Request</response>
+        /// <response code = "409" > If Email already confirmed</response>
+        /// <response code = "500" > Internal Server Error</response>
+        [HttpPost]
+        [Authorize(AuthenticationSchemes = "Bearer")]
+        [Route("send-email-confirmation")]
+        public async Task<ActionResult<Response>> SendConfirmationEmailLetter() {
+            try {
+                return await _account.SendEmailConfirmationLetter(User.Identity.Name);
+            }
+            catch (KeyNotFoundException e) {
+                _logger.LogError(e,
+                    $"Message: {e.Message} TraceId: {Activity.Current?.Id ?? HttpContext.TraceIdentifier}");
+                return Problem(statusCode: 404, title: e.Message);
+            }
+            catch (InvalidOperationException e) {
+                _logger.LogError(e,
+                    $"Message: {e.Message} TraceId: {Activity.Current?.Id ?? HttpContext.TraceIdentifier}");
+                return Problem(statusCode: 409, title: e.Message);
+            }
+            catch (Exception e) {
+                _logger.LogError(e,
+                    $"Message: {e.Message} TraceId: {Activity.Current?.Id ?? HttpContext.TraceIdentifier}");
+                return Problem(statusCode: 500, title: "Something went wrong");
+            }
+        }
+        
+        /// <summary>
+        /// Confirm user`s Email.
+        /// </summary>
+        /// <returns></returns>
+        /// <response code = "400" > Bad Request</response>
+        /// <response code = "409" > If Email already confirmed</response>
+        /// <response code = "500" > Internal Server Error</response>
+        [HttpPost]
+        [Authorize(AuthenticationSchemes = "Bearer")]
+        [Route("confirm-email")]
+        public async Task<ActionResult<Response>> ConfirmEmail([FromBody] EmailComfirmationToken token) {
+            try {
+                return await _account.ConfirmEmail(User.Identity.Name, token.Token);
+            }
+            catch (InvalidOperationException e) {
                 _logger.LogError(e,
                     $"Message: {e.Message} TraceId: {Activity.Current?.Id ?? HttpContext.TraceIdentifier}");
                 return Problem(statusCode: 409, title: e.Message);
