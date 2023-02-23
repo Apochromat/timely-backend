@@ -144,6 +144,7 @@ namespace timely_backend.Controllers {
         /// <response code = "500" > Internal Server Error</response>
         [HttpPost]
         [Route("logout")]
+        [Authorize(AuthenticationSchemes = "Bearer")]
         public async Task<ActionResult<Response>> Logout() {
             try {
                 return await _account.Logout(Request.Headers.Authorization);
@@ -234,11 +235,59 @@ namespace timely_backend.Controllers {
             }
         }
         
-        [HttpGet]
-        [Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Administrator)]
-        [Route("am-i-admin")]
-        public async Task<ActionResult<Response>> AdminCheck() {
-            return Ok("Yes my master");
+        /// <summary>
+        /// Set user`s group.
+        /// </summary>
+        /// <returns></returns>
+        /// <response code = "400" > Bad Request</response>
+        /// <response code = "401" > Unauthorized</response>
+        /// <response code = "403" > This endpoint only for Students</response>
+        /// <response code = "500" > Internal Server Error</response>
+        [HttpPut]
+        [Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Student)]
+        [Route("set-group")]
+        public async Task<ActionResult<Response>> SetGroup([FromBody] GroupChangeDTO groupChangeDto) {
+            try {
+                return await _account.SetGroup(User.Identity.Name, groupChangeDto.GroupId);
+            }
+            catch (InvalidOperationException e) {
+                _logger.LogError(e,
+                    $"Message: {e.Message} TraceId: {Activity.Current?.Id ?? HttpContext?.TraceIdentifier}");
+                return Problem(statusCode: 400, title: e.Message);
+            }
+            catch (Exception e) {
+                _logger.LogError(e,
+                    $"Message: {e.Message} TraceId: {Activity.Current?.Id ?? HttpContext?.TraceIdentifier}");
+                return Problem(statusCode: 500, title: "Something went wrong");
+            }
         }
+        
+        /// <summary>
+        /// Remove user`s group.
+        /// </summary>
+        /// <returns></returns>
+        /// <response code = "400" > Bad Request</response>
+        /// <response code = "401" > Unauthorized</response>
+        /// <response code = "403" > This endpoint only for Students</response>
+        /// <response code = "500" > Internal Server Error</response>
+        [HttpDelete]
+        [Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Student)]
+        [Route("remove-group")]
+        public async Task<ActionResult<Response>> RemoveGroup() {
+            try {
+                return await _account.RemoveGroup(User.Identity.Name);
+            }
+            catch (InvalidOperationException e) {
+                _logger.LogError(e,
+                    $"Message: {e.Message} TraceId: {Activity.Current?.Id ?? HttpContext?.TraceIdentifier}");
+                return Problem(statusCode: 400, title: e.Message);
+            }
+            catch (Exception e) {
+                _logger.LogError(e,
+                    $"Message: {e.Message} TraceId: {Activity.Current?.Id ?? HttpContext?.TraceIdentifier}");
+                return Problem(statusCode: 500, title: "Something went wrong");
+            }
+        }
+        
     }
 }
