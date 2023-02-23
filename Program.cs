@@ -20,7 +20,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddCors(options => {
     options.AddDefaultPolicy(
         policy => {
-            policy.WithOrigins().AllowAnyMethod().AllowAnyHeader().SetIsOriginAllowed(origin => true).AllowCredentials();
+            policy.AllowAnyOrigin()
+                .AllowAnyHeader()
+                .AllowAnyMethod();
         });
 });
 
@@ -59,7 +61,7 @@ builder.Services.AddIdentity<User, Role>(options => { options.SignIn.RequireConf
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(option => {
-    option.SwaggerDoc("v1", new OpenApiInfo { Title = "TimelyAPI", Version = "v1" });
+    option.SwaggerDoc("v1", new OpenApiInfo { Title = "TimelyAPI", Version = "v2" });
     option.SchemaFilter<EnumSchemaFilter>(); // translate enums to strings  
     option.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme {
         In = ParameterLocation.Header,
