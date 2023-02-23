@@ -34,7 +34,9 @@ namespace timely_backend {
                 UserName = user.UserName,
                 FullName = user.FullName,
                 Email = user.Email,
-                Roles = user.Roles.Select(r => r.Role).Select(role => role.Name.ToString()).ToList()
+                Roles = user.Roles.Select(r => r.Role).Select(role => role.Name.ToString()).ToList(),
+                Teacher = user.Teacher,
+                Group = user.Group
             };
             return temp;
         }

@@ -19,10 +19,12 @@ namespace timely_backend.Services {
         private readonly ICacheService _cacheService;
         private readonly IEmailSender _emailSender;
         private readonly IConfiguration _configuration;
+        private readonly IAdminService _adminService;
 
         public AccountService(ILogger<AccountService> logger, ApplicationDbContext context,
             UserManager<User> userManager, SignInManager<User> signInManager, RoleManager<Role> roleManager,
-            ICacheService cacheService, IEmailSender emailSender, IConfiguration configuration) {
+            ICacheService cacheService, IEmailSender emailSender, IConfiguration configuration,
+            IAdminService adminService) {
             _cacheService = cacheService;
             _userManager = userManager;
             _signInManager = signInManager;
@@ -31,6 +33,7 @@ namespace timely_backend.Services {
             _context = context;
             _emailSender = emailSender;
             _configuration = configuration;
+            _adminService = adminService;
         }
 
         /// <summary>
@@ -57,7 +60,17 @@ namespace timely_backend.Services {
                 var letter = await SendEmailConfirmationLetter(user.Email);
                 var emailDomain = user.Email.Split("@")[1];
                 if (_context.Domains.Select(x => x.Url).ToList().Contains(emailDomain)) {
-                    await _userManager.AddToRoleAsync(user, ApplicationRoleNames.Teacher);
+                    await _userManager.AddToRoleAsync(user, ApplicationRoleNames.Teacher); // set role
+
+                    if (_context.Teachers.Where(t => t.Name == user.FullName).IsNullOrEmpty()) {
+                        await _adminService.CreateTeacher(
+                            new TeacherDTO {
+                                Name = user.FullName
+                            });
+                    }
+
+                    user.Teacher = _context.Teachers.Where(t => t.Name == user.FullName).FirstOrDefault();
+                    await _context.SaveChangesAsync();
                 }
                 else {
                     await _userManager.AddToRoleAsync(user, ApplicationRoleNames.Student);
@@ -163,6 +176,7 @@ namespace timely_backend.Services {
             if (user == null) throw new KeyNotFoundException("User not found");
 
             user = _userManager.Users.Where(u => u.Email == email).Include(u => u.Roles).ThenInclude(r => r.Role)
+                .Include(u => u.Teacher).Include(u => u.Group)
                 .First();
 
             _logger.LogInformation("User`s profile was returned successfuly");
