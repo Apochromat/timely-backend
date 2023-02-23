@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using timely_backend.Models;
 using timely_backend.Models.DTO;
+using timely_backend.Models.Enum;
 using timely_backend.Views;
 
 namespace timely_backend.Services {
@@ -54,14 +55,22 @@ namespace timely_backend.Services {
                 _logger.LogInformation("Successful register");
 
                 var letter = await SendEmailConfirmationLetter(user.Email);
-                
-                return await Login(new LoginCredentials { Email = userRegisterModel.Email, Password = userRegisterModel.Password });
+                var emailDomain = user.Email.Split("@")[1];
+                if (_context.Domains.Select(x => x.Url).ToList().Contains(emailDomain)) {
+                    await _userManager.AddToRoleAsync(user, ApplicationRoleNames.Teacher);
+                }
+                else {
+                    await _userManager.AddToRoleAsync(user, ApplicationRoleNames.Student);
+                }
+
+                return await Login(new LoginCredentials
+                    { Email = userRegisterModel.Email, Password = userRegisterModel.Password });
             }
 
             var errors = string.Join(", ", result.Errors.Select(x => x.Description));
             throw new InvalidOperationException(errors);
         }
-        
+
         /// <summary>
         /// Send Email confirmation letter
         /// </summary>
@@ -69,12 +78,12 @@ namespace timely_backend.Services {
             var user = await _userManager.FindByEmailAsync(email);
             if (user == null) throw new KeyNotFoundException("User not found");
             if (user.EmailConfirmed) throw new InvalidOperationException("Email is already confirmed");
-            
+
             var config = _configuration.GetSection("EmailConfiguration");
 
             var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
             var view = EmailConfirmationView.Page(user.FullName, config.GetValue<string>("SiteURL"), token);
-                
+
             await _emailSender.SendEmailAsync(user.Email, config.GetValue<string>("ConfirmationTitle"), view);
             _logger.LogInformation("Email confirmation letter successfully sent");
             return new Response() {
@@ -82,7 +91,7 @@ namespace timely_backend.Services {
                 Message = "Email confirmation letter successfully sent"
             };
         }
-        
+
         /// <summary>
         /// Confirm user`s email
         /// </summary>
@@ -92,10 +101,10 @@ namespace timely_backend.Services {
             if (user.EmailConfirmed) throw new InvalidOperationException("Email is already confirmed");
 
             var result = await _userManager.ConfirmEmailAsync(user, token);
-            
+
             if (result.Succeeded) {
                 _logger.LogInformation("Successful email confirmation");
-                
+
                 return new Response {
                     Status = "Ok",
                     Message = "Successful email confirmation"
@@ -137,9 +146,9 @@ namespace timely_backend.Services {
         /// </summary>
         public async Task<Response> Logout(string token) {
             await _cacheService.DisableToken(token);
-            
+
             _logger.LogInformation("Successful logout");
-            
+
             return new Response {
                 Status = "Ok",
                 Message = "Successful logout"
@@ -153,8 +162,9 @@ namespace timely_backend.Services {
             var user = await _userManager.FindByEmailAsync(email);
             if (user == null) throw new KeyNotFoundException("User not found");
 
-            user = _userManager.Users.Where(u => u.Email == email).Include(u => u.Roles).ThenInclude(r => r.Role).First();
-            
+            user = _userManager.Users.Where(u => u.Email == email).Include(u => u.Roles).ThenInclude(r => r.Role)
+                .First();
+
             _logger.LogInformation("User`s profile was returned successfuly");
             return ModelConverter.ToUserProfile(user);
         }
@@ -168,9 +178,9 @@ namespace timely_backend.Services {
 
             user.FullName = userProfileEdit.FullName;
             await _context.SaveChangesAsync();
-            
+
             _logger.LogInformation("User`s profile was modified successfully");
-            
+
             return new Response {
                 Status = "Ok",
                 Message = "Successfully modified"
@@ -190,7 +200,7 @@ namespace timely_backend.Services {
                 throw new InvalidOperationException(string.Join(", ", result.Errors.Select(x => x.Description)));
 
             _logger.LogInformation("User`s password was changed successfully");
-            
+
             return new Response {
                 Status = "Ok",
                 Message = "Password successfully changed"
