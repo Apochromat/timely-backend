@@ -1,12 +1,15 @@
 ﻿using System.Diagnostics;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using timely_backend.Models.DTO;
+using timely_backend.Models.Enum;
 using timely_backend.Services;
 
 namespace timely_backend.Controllers
 {
     [ApiController]
+    [Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Administrator)]
     [Route("api/admin")]
     public class AdminController : ControllerBase
     {
