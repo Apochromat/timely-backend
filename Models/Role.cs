@@ -1,4 +1,4 @@
-﻿using timely_backend.Models.Enums;
+﻿using timely_backend.Models.Enum;
 using Microsoft.AspNetCore.Identity;
 
 namespace timely_backend.Models {

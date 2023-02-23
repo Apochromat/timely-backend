@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Xml.Linq;
 
-namespace timely_backend.Models.Enums {
+namespace timely_backend.Models.Enum {
     public enum RoleType {
         [Display(Name = ApplicationRoleNames.Administrator)]
         Administrator,
@@ -12,8 +12,8 @@ namespace timely_backend.Models.Enums {
     }
 
     public class ApplicationRoleNames {
-        public const string Administrator = "Администратор";
-        public const string Student = "Студент";
-        public const string Teacher = "Преподаватель";
+        public const string Administrator = "Administrator";
+        public const string Student = "Student";
+        public const string Teacher = "Teacher";
     }
 }

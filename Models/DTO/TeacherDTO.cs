@@ -10,8 +10,8 @@ namespace timely_backend.Models.DTO
         [MinLength(1)]
         [MaxLength(64)]
         [DisplayName("fullName")]
-        [RegularExpression(@"^([А-ЯЁ][а-яё]+[\-\s]?){2,3}$",
-        ErrorMessage = "ФИО должно состоять из 2-3 слов, начинаться с заглавной буквы и содержать только кириллические символы, дефисы и пробелы")]
+        [RegularExpression(@"^([A-ZА-ЯЁ][a-zа-яё]+[\s]?){2,3}$",
+        ErrorMessage = "ФИО должно состоять из 2-3 слов, начинаться с заглавной буквы и содержать только латинские, кириллические символы, пробелы")]
         public string Name { get; set; }
         public Guid? Id { get; set; }
     }
