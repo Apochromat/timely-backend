@@ -122,6 +122,8 @@ if (app.Environment.IsDevelopment() || true) {
 
 app.UseHttpsRedirection();
 
+app.UseCors();
+
 app.UseAuthentication();
 app.UseAuthorization();
 
