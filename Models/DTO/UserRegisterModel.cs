@@ -8,7 +8,8 @@ public class UserRegisterModel {
     /// Users Surname, Name and optional Patronymic
     /// </summary>
     [Required]
-    [RegularExpression(@"^[а-яА-ЯёЁa-zA-Z ]+$")]
+    [RegularExpression(@"^([A-ZА-ЯЁ][a-zа-яё]+[\s]?){2,3}$",
+        ErrorMessage = "ФИО должно состоять из 2-3 слов, начинаться с заглавной буквы и содержать только латинские, кириллические символы, пробелы")]
     [MinLength(1)]
     [MaxLength(64)]
     [DisplayName("fullName")]

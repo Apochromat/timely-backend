@@ -153,7 +153,7 @@ namespace timely_backend.Services {
             var user = await _userManager.FindByEmailAsync(email);
             if (user == null) throw new KeyNotFoundException("User not found");
 
-            user = _userManager.Users.Include(u => u.Roles).ThenInclude(r => r.Role).First();
+            user = _userManager.Users.Where(u => u.Email == email).Include(u => u.Roles).ThenInclude(r => r.Role).First();
             
             _logger.LogInformation("User`s profile was returned successfuly");
             return ModelConverter.ToUserProfile(user);

@@ -1,7 +1,9 @@
-﻿using System.Xml.Linq;
+﻿using System.Text.RegularExpressions;
+using System.Xml.Linq;
 using Microsoft.EntityFrameworkCore;
 using timely_backend.Models;
 using timely_backend.Models.DTO;
+using Group = timely_backend.Models.Group;
 
 namespace timely_backend.Services
 {
@@ -75,7 +77,7 @@ namespace timely_backend.Services
             }*/
             await _context.Teachers.AddAsync(new Teacher
             {
-                Name = teacher.Name
+                Name = Regex.Replace(teacher.Name, @"\s+", " ")
             }) ;
             await _context.SaveChangesAsync();
         }
