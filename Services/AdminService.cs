@@ -299,17 +299,22 @@ namespace timely_backend.Services
             {
                 throw new ArgumentNullException(nameof(timeInterval));
             }
-            /*var sameInterval = await _context.LessonTags.FirstOrDefaultAsync(x => x.Name == lessonTag.Name);
+            var sameInterval = await _context.TimeIntervals.FirstOrDefaultAsync(x => x.StartTime == timeInterval.StartTime && x.EndTime == timeInterval.EndTime);
 
             if (sameInterval != null)
             {
-                throw new ArgumentException("this lessonTag is already exist");
-            }*/
+                throw new ArgumentException("this timeInterval is already exist");
+            }
+            var error = await _context.TimeIntervals.FirstOrDefaultAsync(x => x.StartTime <= timeInterval.EndTime && x.EndTime >= timeInterval.StartTime || x.StartTime<= timeInterval.StartTime && x.EndTime >= timeInterval.EndTime || x.StartTime>=timeInterval.StartTime && x.EndTime <=timeInterval.EndTime);
+            if (error != null)
+            {
+                throw new ArgumentException("this timeInterval intersects another one");
+            }
             await _context.TimeIntervals.AddAsync(new TimeInterval
             {
                 StartTime = timeInterval.StartTime,
                 EndTime = timeInterval.EndTime,
-                Timezone = timeInterval.Timezone
+                
             }) ;
             await _context.SaveChangesAsync();
         }
@@ -319,17 +324,22 @@ namespace timely_backend.Services
             {
                 throw new ArgumentNullException(nameof(timeInterval));
             }
-            /*var sameInterval = await _context.LessonTags.FirstOrDefaultAsync(x => x.Name == lessonTag.Name);
+            var sameInterval = await _context.TimeIntervals.FirstOrDefaultAsync(x => x.StartTime == timeInterval.StartTime && x.EndTime == timeInterval.EndTime);
 
             if (sameInterval != null)
             {
-                throw new ArgumentException("this lessonTag is already exist");
-            }*/
+                throw new ArgumentException("this timeInterval is already exist");
+            }
+            var error = await _context.TimeIntervals.FirstOrDefaultAsync(x => x.StartTime <= timeInterval.EndTime && x.EndTime >= timeInterval.StartTime || x.StartTime <= timeInterval.StartTime && x.EndTime >= timeInterval.EndTime || x.StartTime >= timeInterval.StartTime && x.EndTime <= timeInterval.EndTime);
+            if (error != null)
+            {
+                throw new ArgumentException("this timeInterval intersects another one");
+            }
+
             var TimeInterval = await _context.TimeIntervals.FindAsync(id);
             if (TimeInterval == null) throw new KeyNotFoundException("timeInterval with this id does not exist");
             TimeInterval.StartTime = timeInterval.StartTime;
             TimeInterval.EndTime = timeInterval.EndTime;
-            TimeInterval.Timezone = timeInterval.Timezone;
             await _context.SaveChangesAsync();
         }
         public async Task DeleteTimeInterval(Guid id)

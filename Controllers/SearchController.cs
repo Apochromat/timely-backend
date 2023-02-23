@@ -102,7 +102,7 @@ namespace timely_backend.Controllers
         }
         [HttpGet]
         [Route("timeIntervals")]
-        public async Task<ActionResult<IList<ClassroomDTO>>> GetTimeIntervals()
+        public async Task<ActionResult<IList<TimeIntervalDTO>>> GetTimeIntervals()
         {
             try
             {
