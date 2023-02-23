@@ -17,6 +17,13 @@ using timely_backend.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddCors(options => {
+    options.AddDefaultPolicy(
+        policy => {
+            policy.WithOrigins().AllowAnyMethod().AllowAnyHeader().SetIsOriginAllowed(origin => true).AllowCredentials();
+        });
+});
+
 // Add services to the container. Add ability to right convert strings to enums
 builder.Services.AddControllers().AddJsonOptions(opts => {
     var enumConverter = new JsonStringEnumConverter();
