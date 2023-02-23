@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using timely_backend;
 
@@ -10,9 +11,11 @@ using timely_backend;
 namespace timely_backend.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230217153718_addDbsets")]
+    partial class addDbsets
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -118,21 +121,6 @@ namespace timely_backend.Migrations
                     b.ToTable("Classrooms");
                 });
 
-            modelBuilder.Entity("timely_backend.Models.Domain", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)");
-
-                    b.Property<string>("Url")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Domains");
-                });
-
             modelBuilder.Entity("timely_backend.Models.Group", b =>
                 {
                     b.Property<Guid>("Id")
@@ -154,15 +142,6 @@ namespace timely_backend.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
-                    b.Property<Guid?>("ChainId")
-                        .HasColumnType("char(36)");
-
-                    b.Property<Guid>("ClassroomId")
-                        .HasColumnType("char(36)");
-
-                    b.Property<DateTime>("Date")
-                        .HasColumnType("datetime(6)");
-
                     b.Property<Guid>("GroupId")
                         .HasColumnType("char(36)");
 
@@ -179,8 +158,6 @@ namespace timely_backend.Migrations
                         .HasColumnType("char(36)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ClassroomId");
 
                     b.HasIndex("GroupId");
 
@@ -285,11 +262,12 @@ namespace timely_backend.Migrations
                         .HasColumnType("longtext");
 
                     b.Property<string>("Timezone")
+                        .IsRequired()
                         .HasColumnType("longtext");
 
                     b.HasKey("Id");
 
-                    b.ToTable("TimeIntervals");
+                    b.ToTable("TimeInterval");
                 });
 
             modelBuilder.Entity("timely_backend.Models.User", b =>
@@ -414,12 +392,6 @@ namespace timely_backend.Migrations
 
             modelBuilder.Entity("timely_backend.Models.Lesson", b =>
                 {
-                    b.HasOne("timely_backend.Models.Classroom", "Classroom")
-                        .WithMany()
-                        .HasForeignKey("ClassroomId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("timely_backend.Models.Group", "Group")
                         .WithMany()
                         .HasForeignKey("GroupId")
@@ -449,8 +421,6 @@ namespace timely_backend.Migrations
                         .HasForeignKey("TimeIntervalId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Classroom");
 
                     b.Navigation("Group");
 

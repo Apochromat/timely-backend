@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -6,6 +5,7 @@ using Microsoft.OpenApi.Models;
 using Serilog;
 using System.Reflection;
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.Extensions.Caching.Distributed;
@@ -30,6 +30,8 @@ builder.Services.AddDbContext<ApplicationDbContext>();
 builder.Services.AddSingleton<IAuthorizationMiddlewareResultHandler, LogoutCheckAuthorizationMiddlewareResultHandler>();
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IEmailSender, EmailSender>();
+builder.Services.AddScoped<IAdminService, AdminService>();
+builder.Services.AddScoped<IScheduleService, ScheduleService>();
 
 // Connect distributed cache
 builder.Services.AddSingleton<IDistributedCache, RedisCache>();
@@ -74,7 +76,6 @@ builder.Services.AddSwaggerGen(option => {
     var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
     option.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
 });
-
 
 builder.Services.AddAuthorization();
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

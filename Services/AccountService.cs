@@ -129,7 +129,7 @@ namespace timely_backend.Services {
 
             return new TokenResponse(new JwtSecurityTokenHandler().WriteToken(jwt),
                 identity.Claims.Where(c => c.Type == ClaimTypes.Name).Select(c => c.Value).SingleOrDefault(""),
-                identity.Claims.Where(c => c.Type == ClaimTypes.Role).Select(c => c.Value).First().Split(","));
+                identity.Claims.Where(c => c.Type == ClaimTypes.Role).Select(c => c.Value).ToList());
         }
 
         /// <summary>
