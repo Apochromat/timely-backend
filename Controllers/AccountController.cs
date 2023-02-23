@@ -218,7 +218,7 @@ namespace timely_backend.Controllers {
         /// <response code = "500" > Internal Server Error</response>
         [HttpPut]
         [Authorize(AuthenticationSchemes = "Bearer")]
-        [Route("changePassword")]
+        [Route("password-change")]
         public async Task<ActionResult<Response>> EditAccountPassword([FromBody] UserPasswordEdit userPasswordEdit) {
             try {
                 return await _account.EditPassword(User.Identity.Name, userPasswordEdit);
@@ -245,7 +245,7 @@ namespace timely_backend.Controllers {
         /// <response code = "500" > Internal Server Error</response>
         [HttpPut]
         [Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Student)]
-        [Route("set-group")]
+        [Route("group/set")]
         public async Task<ActionResult<Response>> SetGroup([FromBody] GroupChangeDTO groupChangeDto) {
             try {
                 return await _account.SetGroup(User.Identity.Name, groupChangeDto.GroupId);
@@ -272,7 +272,7 @@ namespace timely_backend.Controllers {
         /// <response code = "500" > Internal Server Error</response>
         [HttpDelete]
         [Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Student)]
-        [Route("remove-group")]
+        [Route("group/remove")]
         public async Task<ActionResult<Response>> RemoveGroup() {
             try {
                 return await _account.RemoveGroup(User.Identity.Name);
