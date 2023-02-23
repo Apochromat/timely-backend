@@ -2,7 +2,7 @@
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
-namespace FoodDeliveryAPI.Models.Enums;
+namespace timely_backend.Models.Enums;
 
 internal sealed class EnumSchemaFilter : ISchemaFilter {
     // Translate enums to strings
