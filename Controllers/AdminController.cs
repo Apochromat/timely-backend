@@ -635,5 +635,94 @@ namespace timely_backend.Controllers
                 return Problem(statusCode: 500, title: "Something went wrong");
             }
         }
+        [HttpPost]
+        [Route("lesson/create")]
+        public async Task<IActionResult> CreateLesson([FromBody] LessonFromId lesson)
+        {
+            try
+            {
+                await _adminService.CreateLesson(lesson);
+                return Ok();
+            }
+            catch (ArgumentNullException e)
+            {
+                _logger.LogError(e,
+                    $"Message: {e.Message} TraceId: {Activity.Current?.Id ?? HttpContext.TraceIdentifier}");
+                return Problem(statusCode: 400, title: e.Message);
+            }
+            catch (ArgumentException e)
+            {
+                _logger.LogError(e,
+                    $"Message: {e.Message} TraceId: {Activity.Current?.Id ?? HttpContext.TraceIdentifier}");
+                return Problem(statusCode: 409, title: e.Message);
+            }
+
+            catch (Exception e)
+            {
+                _logger.LogError(e,
+                    $"Message: {e.Message} TraceId: {Activity.Current?.Id ?? HttpContext.TraceIdentifier}");
+                return Problem(statusCode: 500, title: "Something went wrong");
+            }
+        }
+
+        [HttpPut]
+        [Route("lesson/edit/{id}")]
+        public async Task<IActionResult> EditLesson([FromBody] LessonFromId lesson, Guid id)
+        {
+            try
+            {
+                await _adminService.EditLesson(lesson, id);
+                return Ok();
+            }
+            catch (ArgumentNullException e)
+            {
+                _logger.LogError(e,
+                    $"Message: {e.Message} TraceId: {Activity.Current?.Id ?? HttpContext.TraceIdentifier}");
+                return Problem(statusCode: 400, title: e.Message);
+            }
+            catch (KeyNotFoundException e)
+            {
+                _logger.LogError(e,
+                    $"Message: {e.Message} TraceId: {Activity.Current?.Id ?? HttpContext.TraceIdentifier}");
+                return Problem(statusCode: 400, title: e.Message);
+            }
+            catch (ArgumentException e)
+            {
+                _logger.LogError(e,
+                    $"Message: {e.Message} TraceId: {Activity.Current?.Id ?? HttpContext.TraceIdentifier}");
+                return Problem(statusCode: 409, title: e.Message);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e,
+                    $"Message: {e.Message} TraceId: {Activity.Current?.Id ?? HttpContext.TraceIdentifier}");
+                return Problem(statusCode: 500, title: "Something went wrong");
+            }
+        }
+
+        [HttpDelete]
+        [Route("lesson/delete/{id}")]
+        public async Task<IActionResult> DeleteLesson(Guid id)
+        {
+            try
+            {
+                await _adminService.DeleteLesson(id);
+                return Ok();
+            }
+
+            catch (KeyNotFoundException e)
+            {
+                _logger.LogError(e,
+                    $"Message: {e.Message} TraceId: {Activity.Current?.Id ?? HttpContext.TraceIdentifier}");
+                return Problem(statusCode: 400, title: e.Message);
+            }
+
+            catch (Exception e)
+            {
+                _logger.LogError(e,
+                    $"Message: {e.Message} TraceId: {Activity.Current?.Id ?? HttpContext.TraceIdentifier}");
+                return Problem(statusCode: 500, title: "Something went wrong");
+            }
+        }
     }
 }

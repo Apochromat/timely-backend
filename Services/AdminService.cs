@@ -3,6 +3,7 @@ using System.Xml.Linq;
 using Microsoft.EntityFrameworkCore;
 using timely_backend.Models;
 using timely_backend.Models.DTO;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 using Group = timely_backend.Models.Group;
 
 namespace timely_backend.Services
@@ -15,6 +16,120 @@ namespace timely_backend.Services
         {
             _logger = logger;
             _context = context;
+        }
+       public async Task CreateLesson(LessonFromId lesson)
+        {
+            var teacher = await _context.Teachers.FindAsync(lesson.TeacherId);
+            if (teacher == null) throw new KeyNotFoundException("this teacher with this id does not exist");
+            
+            var classroom = await _context.Classrooms.FindAsync(lesson.ClassroomId);
+            if (classroom == null) throw new KeyNotFoundException("this classroom with this id does not exist");
+            
+            var group = await _context.Groups.FindAsync(lesson.GroupId);
+            if (group == null) throw new KeyNotFoundException("group with this id does not exist");
+
+            var lessonName = await _context.LessonNames.FindAsync(lesson.NameId);
+            if (lessonName == null) throw new KeyNotFoundException("lessonName with this id does not exist");
+
+            var lessonTag = await _context.LessonTags.FindAsync(lesson.TagId);
+            if (lessonTag == null) throw new KeyNotFoundException("this lessonTag does not exist");
+            
+            var timeInterval = await _context.TimeIntervals.FindAsync(lesson.TimeIntervalId);
+            if (timeInterval == null) throw new KeyNotFoundException("this timeInterval does not exist");
+
+            var sameLesson = await _context.Lessons.FirstOrDefaultAsync(x => x.Name == lessonName && x.Tag == lessonTag && x.Group == group && x.Classroom == classroom && x.Teacher == teacher && x.TimeInterval == timeInterval && x.Date == lesson.Date) ;
+            if (sameLesson != null)
+            {
+                throw new ArgumentException("this lesson is already exist");
+            }
+            sameLesson = await _context.Lessons.FirstOrDefaultAsync(x=> x.Teacher == teacher && x.TimeInterval == timeInterval && x.Date == lesson.Date);
+            if (sameLesson != null)
+            {
+                throw new ArgumentException("this lesson is already exist with" + teacher.Name );
+            }
+            sameLesson = await _context.Lessons.FirstOrDefaultAsync(x => x.Classroom == classroom && x.TimeInterval == timeInterval && x.Date == lesson.Date);
+            if (sameLesson != null)
+            {
+                throw new ArgumentException("this lesson is already exist with" + classroom.Name);
+            }
+            sameLesson = await _context.Lessons.FirstOrDefaultAsync(x => x.Group == group && x.TimeInterval == timeInterval && x.Date == lesson.Date);
+            if (sameLesson != null)
+            {
+                throw new ArgumentException("this lesson is already exist with" + group.Name);
+            }
+
+            await _context.Lessons.AddAsync(new Lesson
+            {
+                Name = lessonName,
+                Tag = lessonTag,
+                TimeInterval = timeInterval,
+                Group = group,
+                Teacher= teacher,
+                Classroom= classroom,
+                Date = lesson.Date,
+                ChainId=lesson.ChainId,
+            });
+            await _context.SaveChangesAsync();
+        }
+        public async Task EditLesson(LessonFromId lesson, Guid id)
+        {
+            var teacher = await _context.Teachers.FindAsync(lesson.TeacherId);
+            if (teacher == null) throw new KeyNotFoundException("this teacher with this id does not exist");
+
+            var classroom = await _context.Classrooms.FindAsync(lesson.ClassroomId);
+            if (classroom == null) throw new KeyNotFoundException("this classroom with this id does not exist");
+
+            var Group = await _context.Groups.FindAsync(lesson.GroupId);
+            if (Group == null) throw new KeyNotFoundException("group with this id does not exist");
+
+            var LessonName = await _context.LessonNames.FindAsync(lesson.NameId);
+            if (LessonName == null) throw new KeyNotFoundException("lessonName with this id does not exist");
+
+            var lessonTag = await _context.LessonTags.FindAsync(lesson.TagId);
+            if (lessonTag == null) throw new KeyNotFoundException("this lessonTag does not exist");
+
+            var timeInterval = await _context.TimeIntervals.FindAsync(lesson.TimeIntervalId);
+            if (timeInterval == null) throw new KeyNotFoundException("this timeInterval does not exist");
+
+            var Lesson = await _context.Lessons.FindAsync(id);
+            if (Lesson == null) throw new KeyNotFoundException("Lesson with this id does not exist");
+
+            var sameLesson = await _context.Lessons.FirstOrDefaultAsync(x => x.Name == LessonName && x.Tag == lessonTag && x.Group == Group && x.Classroom == classroom && x.Teacher == teacher && x.TimeInterval == timeInterval && x.Date == lesson.Date);
+            if (sameLesson != null)
+            {
+                throw new ArgumentException("this lesson is already exist");
+            }
+            sameLesson = await _context.Lessons.FirstOrDefaultAsync(x => x.Teacher == teacher && x.TimeInterval == timeInterval && x.Date == lesson.Date);
+            if (sameLesson != null)
+            {
+                throw new ArgumentException("this lesson is already exist with " + teacher.Name);
+            }
+            sameLesson = await _context.Lessons.FirstOrDefaultAsync(x => x.Classroom == classroom && x.TimeInterval == timeInterval && x.Date == lesson.Date);
+            if (sameLesson != null)
+            {
+                throw new ArgumentException("this lesson is already exist with" + classroom.Name);
+            }
+            sameLesson = await _context.Lessons.FirstOrDefaultAsync(x => x.Group == Group && x.TimeInterval == timeInterval && x.Date == lesson.Date);
+            if (sameLesson != null)
+            {
+                throw new ArgumentException("this lesson is already exist with" + Group.Name);
+            }
+
+            Lesson.Name = LessonName;
+            Lesson.Tag = lessonTag;
+            Lesson.TimeInterval = timeInterval;
+            Lesson.Group = Group;
+            Lesson.Teacher = teacher;
+            Lesson.Classroom = classroom;
+            Lesson.Date = lesson.Date;
+            Lesson.ChainId = lesson.ChainId;
+
+            await _context.SaveChangesAsync();
+        }
+      
+        public async Task DuplicateLesson(DateTime date)
+        {
+
         }
         //domain
         public async Task CreateDomain(DomainDTO domain)
@@ -49,6 +164,16 @@ namespace timely_backend.Services
             var Domain = await _context.Domains.FindAsync(id);
             if (Domain == null) throw new KeyNotFoundException("domain with this id does not exist");
             Domain.Url = domain.Url;
+            await _context.SaveChangesAsync();
+        }
+        public async Task DeleteLesson(Guid id)
+        {
+            var lesson = await _context.Lessons.FindAsync(id);
+            if (lesson == null)
+            {
+                throw new KeyNotFoundException("this teacher does not exist");
+            }
+            _context.Lessons.Remove(lesson);
             await _context.SaveChangesAsync();
         }
         public async Task DeleteDomain(Guid id)

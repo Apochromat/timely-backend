@@ -7,21 +7,21 @@ namespace timely_backend.Models.DTO
     {
         [Required(ErrorMessage = "Необходимо указать название пары")]
 
-        public LessonName Name { get; set; }
+        public LessonNameDTO Name { get; set; }
         [Required(ErrorMessage = "Необходимо указать тип пары")]
-        public LessonTag Tag { get; set; }
+        public LessonTagDTO Tag { get; set; }
         [Required(ErrorMessage = "Необходимо указать номер группы")]
 
-        public Group Group { get; set; }
+        public GroupDTO Group { get; set; }
         [Required(ErrorMessage = "Необходимо указать учителя")]
 
-        public Teacher Teacher { get; set; }
+        public TeacherDTO Teacher { get; set; }
         [Required(ErrorMessage = "Необходимо указать временной интервал")]
-        public TimeInterval TimeInterval { get; set; }
+        public TimeIntervalDTO TimeInterval { get; set; }
         [Required(ErrorMessage = "Необходимо указать дату")]
         public DateTime Date { get; set; }
         [Required(ErrorMessage = "Необходимо указать номер аудитории")]
-        public Classroom Classroom { get; set; }
+        public ClassroomDTO Classroom { get; set; }
         public Guid? Id { get; set; }
         public Guid? ChainId { get; set; }
     }
