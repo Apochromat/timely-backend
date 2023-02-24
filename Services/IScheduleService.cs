@@ -13,9 +13,9 @@ namespace timely_backend.Services
         Task <IList<LessonTagDTO>> GetLessonTag();
         Task <IList<LessonNameDTO>> GetLessonName();
         Task <IList<TimeIntervalDTO>> GetTimeInterval();
-        Task <IList<LessonDTO>> GetLessonsClassroom(DateTime date, ClassroomDTO classroom);
-        Task<IList<LessonDTO>> GetLessonsProfessor(DateTime date, TeacherDTO teacher);
-        Task<IList<LessonDTO>> GetLessonsGroup(DateTime date, GroupDTO group);
+        Task <IList<LessonDTO>> GetLessonsClassroom(DateTime date, Guid id);
+        Task<IList<LessonDTO>> GetLessonsProfessor(DateTime date, Guid id);
+        Task<IList<LessonDTO>> GetLessonsGroup(DateTime date, Guid id);
 
     }
 }

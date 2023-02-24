@@ -74,61 +74,75 @@ namespace timely_backend.Services
             }).ToListAsync();
             return TimeIntervals;
         }
-        public async Task<IList<LessonDTO>> GetLessonsGroup(DateTime date, GroupDTO group)
+        public async Task<IList<LessonDTO>> GetLessonsGroup(DateTime date, Guid id)
         {
             DayOfWeek day = date.DayOfWeek;
 
             DateTime startOfWeek = date.AddDays(-1 * (int)day);
             DateTime endOfWeek = startOfWeek.AddDays(6);
-            var result = await _context.Lessons.Where(x => x.Date <= endOfWeek && x.Date >= startOfWeek && x.Group.Name == group.Name).Select(x => new LessonDTO
+
+            var error = await _context.Groups.FindAsync(id);
+            if (error == null) throw new ArgumentException("group with this id does not exist");
+
+            var result = await _context.Lessons.Where(x => x.Date <= endOfWeek && x.Date >= startOfWeek && x.Group.Id == id).Select(x => new LessonDTO
             {
                 Id = x.Id,
-                Name = x.Name,
-                Tag= x.Tag,
-                Group= x.Group,
-                Teacher= x.Teacher,
-                TimeInterval= x.TimeInterval,
-                Classroom = x.Classroom,
+                Name = ModelConverter.ToLessonNameDTO(x.Name),
+                Tag= ModelConverter.ToLessonTagDTO(x.Tag),
+                Group= ModelConverter.ToGroupDTO(x.Group),
+                Teacher= ModelConverter.ToTeacherDTO(x.Teacher),
+                TimeInterval= ModelConverter.ToTimeIntervalDTO(x.TimeInterval),
+                Classroom = ModelConverter.ToClassroomDTO(x.Classroom),
+                ChainId = x.ChainId,
+                Date = x.Date
+            }).ToListAsync();
+            return result;
+        }
+        public async Task<IList<LessonDTO>> GetLessonsClassroom(DateTime date, Guid id)
+        {
+            DayOfWeek day = date.DayOfWeek;
+
+            DateTime startOfWeek = date.AddDays(-1 * (int)day);
+            DateTime endOfWeek = startOfWeek.AddDays(6);
+
+            var error = await _context.Classrooms.FindAsync(id);
+            if (error == null) throw new ArgumentException("classroom with this id does not exist");
+
+            var result = await _context.Lessons.Where(x => x.Date <= endOfWeek && x.Date >= startOfWeek && x.Classroom.Id == id).Select(x => new LessonDTO
+            {
+                Id = x.Id,
+                Name = ModelConverter.ToLessonNameDTO(x.Name),
+                Tag = ModelConverter.ToLessonTagDTO(x.Tag),
+                Group = ModelConverter.ToGroupDTO(x.Group),
+                Teacher = ModelConverter.ToTeacherDTO(x.Teacher),
+                TimeInterval = ModelConverter.ToTimeIntervalDTO(x.TimeInterval),
+                Classroom = ModelConverter.ToClassroomDTO(x.Classroom),
+                ChainId = x.ChainId,
                 Date = x.Date
 
             }).ToListAsync();
             return result;
         }
-        public async Task<IList<LessonDTO>> GetLessonsClassroom(DateTime date, ClassroomDTO classroom)
+        public async Task<IList<LessonDTO>> GetLessonsProfessor(DateTime date,Guid id)
         {
             DayOfWeek day = date.DayOfWeek;
 
             DateTime startOfWeek = date.AddDays(-1 * (int)day);
             DateTime endOfWeek = startOfWeek.AddDays(6);
-            var result = await _context.Lessons.Where(x => x.Date <= endOfWeek && x.Date >= startOfWeek && x.Classroom.Name == classroom.Name).Select(x => new LessonDTO
+
+            var error = await _context.Teachers.FindAsync(id);
+            if (error == null) throw new ArgumentException("teacher with this id does not exist");
+
+            var result = await _context.Lessons.Where(x => x.Date <= endOfWeek && x.Date >= startOfWeek && x.Teacher.Id == id).Select(x => new LessonDTO
             {
                 Id = x.Id,
-                Name = x.Name,
-                Tag = x.Tag,
-                Group = x.Group,
-                Teacher = x.Teacher,
-                TimeInterval = x.TimeInterval,
-                Classroom = x.Classroom,
-                Date = x.Date
-
-            }).ToListAsync();
-            return result;
-        }
-        public async Task<IList<LessonDTO>> GetLessonsProfessor(DateTime date, TeacherDTO teacher)
-        {
-            DayOfWeek day = date.DayOfWeek;
-
-            DateTime startOfWeek = date.AddDays(-1 * (int)day);
-            DateTime endOfWeek = startOfWeek.AddDays(6);
-            var result = await _context.Lessons.Where(x => x.Date <= endOfWeek && x.Date >= startOfWeek && x.Teacher.Name == teacher.Name).Select(x => new LessonDTO
-            {
-                Id = x.Id,
-                Name = x.Name,
-                Tag = x.Tag,
-                Group = x.Group,
-                Teacher = x.Teacher,
-                TimeInterval = x.TimeInterval,
-                Classroom = x.Classroom,
+                Name = ModelConverter.ToLessonNameDTO(x.Name),
+                Tag = ModelConverter.ToLessonTagDTO(x.Tag),
+                Group = ModelConverter.ToGroupDTO(x.Group),
+                Teacher = ModelConverter.ToTeacherDTO(x.Teacher),
+                TimeInterval = ModelConverter.ToTimeIntervalDTO(x.TimeInterval),
+                Classroom = ModelConverter.ToClassroomDTO(x.Classroom),
+                ChainId = x.ChainId,
                 Date = x.Date
 
             }).ToListAsync();

@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using timely_backend.Models;
@@ -21,14 +22,20 @@ namespace timely_backend.Controllers
             _scheduleService = scheduleService;
 
         }
-        [Route("schedule/group")]
+        [Route("schedule/group/{groupId}")]
         [HttpGet]
-        public async Task<ActionResult<IList<LessonDTO>>> GetLessonsGroup(DateTime date, [FromBody] GroupDTO group)
+        public async Task<ActionResult<IList<LessonDTO>>> GetLessonsGroup(DateTime date,Guid groupId)
         {
             try
             {
-               return Ok(await _scheduleService.GetLessonsGroup(date , group));
+               return Ok(await _scheduleService.GetLessonsGroup(date , groupId));
                 
+            }
+            catch (ArgumentException e)
+            {
+                _logger.LogError(e,
+                    $"Message: {e.Message} TraceId: {Activity.Current?.Id ?? HttpContext.TraceIdentifier}");
+                return Problem(statusCode: 404, title: e.Message);
             }
             catch (Exception e)
             {
@@ -36,15 +43,22 @@ namespace timely_backend.Controllers
                     $"Message: {e.Message} TraceId: {Activity.Current?.Id ?? HttpContext.TraceIdentifier}");
                 return Problem(statusCode: 500, title: "Something went wrong while getting LessonsByGroup");
             }
+
         }
-        [Route("schedule/classroom")]
+        [Route("schedule/classroom/{classroomId}")]
         [HttpGet]
-        public async Task<ActionResult<IList<LessonDTO>>> GetLessonsClassroom(DateTime date, [FromBody] ClassroomDTO classroom)
+        public async Task<ActionResult<IList<LessonDTO>>> GetLessonsClassroom(DateTime date,Guid classroomId)
         {
             try
             {
-                return Ok(await _scheduleService.GetLessonsClassroom(date, classroom));
+                return Ok(await _scheduleService.GetLessonsClassroom(date, classroomId));
                 
+            }
+            catch (ArgumentException e)
+            {
+                _logger.LogError(e,
+                    $"Message: {e.Message} TraceId: {Activity.Current?.Id ?? HttpContext.TraceIdentifier}");
+                return Problem(statusCode: 404, title: e.Message);
             }
             catch (Exception e)
             {
@@ -53,14 +67,20 @@ namespace timely_backend.Controllers
                 return Problem(statusCode: 500, title: "Something went wrong while getting LessonsByaudience");
             }
         }
-        [Route("schedule/teacher")]
+        [Route("schedule/teacher/{teacherId}")]
         [HttpGet]
-        public async Task<ActionResult<IList<LessonDTO>>> GetLessonsProfessor(DateTime date ,[FromBody] TeacherDTO teacher )
+        public async Task<ActionResult<IList<LessonDTO>>> GetLessonsProfessor(DateTime date, Guid teacherId)
         {
             try
             {
-                return Ok(await _scheduleService.GetLessonsProfessor(date, teacher));
+                return Ok(await _scheduleService.GetLessonsProfessor(date, teacherId));
                 
+            }
+            catch (ArgumentException e)
+            {
+                _logger.LogError(e,
+                    $"Message: {e.Message} TraceId: {Activity.Current?.Id ?? HttpContext.TraceIdentifier}");
+                return Problem(statusCode: 404, title: e.Message);
             }
             catch (Exception e)
             {
