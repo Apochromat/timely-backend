@@ -6,9 +6,9 @@ namespace timely_backend.Models
     {
         [Key]
         public Guid Id { get; set; } = Guid.NewGuid();
-        public string StartTime { get; set; }
-        public string EndTime { get; set; }
-        public string? Timezone { get; set; }
+
+        public TimeOnly StartTime { get; set; }
+        public TimeOnly EndTime { get; set; }
         //theDate.ToString("yyyy-MM-dd HH':'mm':'ss")
 
 

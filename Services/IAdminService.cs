@@ -35,6 +35,11 @@ namespace timely_backend.Services
         Task CreateGroup(GroupDTO group);
         Task EditGroup(GroupDTO group, Guid id);
         Task DeleteGroup(Guid id);
+        // 
+        Task CreateLesson(LessonFromId lesson);
+        Task EditLesson (LessonFromId lesson , Guid id);
+        Task DeleteLesson(Guid id);
+        Task DuplicateLesson(DateTime date);
     }
 
     
