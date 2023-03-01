@@ -21,11 +21,11 @@ namespace timely_backend.Controllers
         }
         [HttpGet]
         [Route("teachers")]
-        public async Task<ActionResult<IList<TeacherDTO>>> GetTeachers()
+        public async Task<ActionResult<IList<TeacherDTO>>> GetTeachers(string? filter = null)
         {
             try
             {
-              return Ok(await _scheduleService.GetTeacher());
+              return Ok(await _scheduleService.GetTeacher(filter));
                 
                 
             }
@@ -38,11 +38,11 @@ namespace timely_backend.Controllers
         }
         [HttpGet]
         [Route("groups")]
-        public async Task<ActionResult<IList<GroupDTO>>> GetGroups()
+        public async Task<ActionResult<IList<GroupDTO>>> GetGroups(string? filter = null)
         {
             try
             {
-               return Ok(await _scheduleService.GetGroup());
+               return Ok(await _scheduleService.GetGroup(filter));
                 
             }
             catch (Exception e)
@@ -54,11 +54,11 @@ namespace timely_backend.Controllers
         }
         [HttpGet]
         [Route("lessonNames")]
-        public async Task<ActionResult<IList<LessonNameDTO>>> GetLessonNames()
+        public async Task<ActionResult<IList<LessonNameDTO>>> GetLessonNames(string? filter = null)
         {
             try
             {
-               return Ok(await _scheduleService.GetLessonName());
+               return Ok(await _scheduleService.GetLessonName(filter));
                 
             }
             catch (Exception e)
@@ -70,11 +70,11 @@ namespace timely_backend.Controllers
         }
         [HttpGet]
         [Route("lessonTags")]
-        public async Task<ActionResult<IList<LessonTagDTO>>> GetLessonTags()
+        public async Task<ActionResult<IList<LessonTagDTO>>> GetLessonTags(string filter = null)
         {
             try
             {
-                return Ok(await _scheduleService.GetLessonTag());
+                return Ok(await _scheduleService.GetLessonTag(filter));
                 
             }
             catch (Exception e)
@@ -86,11 +86,11 @@ namespace timely_backend.Controllers
         }
         [HttpGet]
         [Route("classrooms")]
-        public async Task<ActionResult<IList<ClassroomDTO>>> GetClassrooms()
+        public async Task<ActionResult<IList<ClassroomDTO>>> GetClassrooms(string? filter = null)
         {
             try
             {
-                return Ok(await _scheduleService.GetClassroom());
+                return Ok(await _scheduleService.GetClassroom(filter));
                 
             }
             catch (Exception e)
@@ -114,6 +114,22 @@ namespace timely_backend.Controllers
                 _logger.LogError(e,
                     $"Message: {e.Message} TraceId: {Activity.Current?.Id ?? HttpContext.TraceIdentifier}");
                 return Problem(statusCode: 500, title: "Something went wrong while getting timeInterval");
+            }
+        }
+        [HttpGet]
+        [Route("domains")]
+        public async Task<ActionResult<IList<LessonTagDTO>>> GetDomains(string? filter = null)
+        {
+            try
+            {
+                return Ok(await _scheduleService.GetDomains(filter));
+
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e,
+                    $"Message: {e.Message} TraceId: {Activity.Current?.Id ?? HttpContext.TraceIdentifier}");
+                return Problem(statusCode: 500, title: "Something went wrong while getting domains");
             }
         }
     }

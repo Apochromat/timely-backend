@@ -1,6 +1,7 @@
 ﻿using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
 using timely_backend.Models;
 using timely_backend.Models.DTO;
 using static System.Runtime.InteropServices.JavaScript.JSType;
@@ -126,7 +127,16 @@ namespace timely_backend.Services
 
             await _context.SaveChangesAsync();
         }
-      
+        public async Task DeleteLesson(Guid id)
+        {
+            var lesson = await _context.Lessons.FindAsync(id);
+            if (lesson == null)
+            {
+                throw new KeyNotFoundException("this teacher does not exist");
+            }
+            _context.Lessons.Remove(lesson);
+            await _context.SaveChangesAsync();
+        }
         public async Task DuplicateLesson(DateTime date)
         {
 
@@ -166,16 +176,7 @@ namespace timely_backend.Services
             Domain.Url = domain.Url;
             await _context.SaveChangesAsync();
         }
-        public async Task DeleteLesson(Guid id)
-        {
-            var lesson = await _context.Lessons.FindAsync(id);
-            if (lesson == null)
-            {
-                throw new KeyNotFoundException("this teacher does not exist");
-            }
-            _context.Lessons.Remove(lesson);
-            await _context.SaveChangesAsync();
-        }
+        
         public async Task DeleteDomain(Guid id)
         {
             var domain = await _context.Domains.FindAsync(id);
@@ -230,7 +231,7 @@ namespace timely_backend.Services
             {
                 throw new KeyNotFoundException("this teacher does not exist");
             }
-            _context.Teachers.Remove(teacher);
+           teacher.IsDeleted = true;
             await _context.SaveChangesAsync();
         }
         // classroom
@@ -276,7 +277,7 @@ namespace timely_backend.Services
             {
                 throw new KeyNotFoundException("this classroom does not exist");
             }
-            _context.Classrooms.Remove(classroom);
+           classroom.IsDeleted = true;
             await _context.SaveChangesAsync();
         }
         //group
@@ -322,7 +323,7 @@ namespace timely_backend.Services
             {
                 throw new KeyNotFoundException("this group does not exist");
             }
-            _context.Groups.Remove(group);
+            group.IsDeleted = true;
             await _context.SaveChangesAsync();
         }
         //lessonName
@@ -368,7 +369,7 @@ namespace timely_backend.Services
             {
                 throw new KeyNotFoundException("this lessonName does not exist");
             }
-            _context.LessonNames.Remove(lessonName);
+           lessonName.IsDeleted = true;
             await _context.SaveChangesAsync();
         }
         //lessonTag
@@ -414,13 +415,13 @@ namespace timely_backend.Services
             {
                 throw new KeyNotFoundException("this lessonTag does not exist");
             }
-            _context.LessonTags.Remove(lessonTag);
+            lessonTag.IsDeleted = true;
             await _context.SaveChangesAsync();
         }
         //timeInterval
         public async Task CreateTimeInterval(TimeIntervalDTO timeInterval)
         {
-            if (timeInterval.StartTime == null || timeInterval.EndTime == null)
+            if (timeInterval.StartTime == null || timeInterval.EndTime == null || timeInterval.StartTime >= timeInterval.EndTime)
             {
                 throw new ArgumentNullException(nameof(timeInterval));
             }
@@ -445,7 +446,7 @@ namespace timely_backend.Services
         }
         public async Task EditTimeInterval(TimeIntervalDTO timeInterval, Guid id)
         {
-            if (timeInterval.StartTime == null || timeInterval.EndTime == null)
+            if (timeInterval.StartTime == null || timeInterval.EndTime == null || timeInterval.StartTime >= timeInterval.EndTime)
             {
                 throw new ArgumentNullException(nameof(timeInterval));
             }
@@ -456,7 +457,9 @@ namespace timely_backend.Services
                 throw new ArgumentException("this timeInterval is already exist");
             }
             var error = await _context.TimeIntervals.FirstOrDefaultAsync(x => x.StartTime <= timeInterval.EndTime && x.EndTime >= timeInterval.StartTime || x.StartTime <= timeInterval.StartTime && x.EndTime >= timeInterval.EndTime || x.StartTime >= timeInterval.StartTime && x.EndTime <= timeInterval.EndTime);
-            if (error != null)
+            Console.WriteLine(id);
+            Console.WriteLine(error.Id);
+            if (error != null && error.Id != id)
             {
                 throw new ArgumentException("this timeInterval intersects another one");
             }

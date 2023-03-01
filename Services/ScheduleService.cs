@@ -1,4 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using ServiceStack;
+using timely_backend.Models;
 using timely_backend.Models.DTO;
 
 namespace timely_backend.Services
@@ -12,61 +14,131 @@ namespace timely_backend.Services
             _logger = logger;
             _context = context;
         }
-        public async Task<IList<TeacherDTO>> GetTeacher()
+        
+        public async Task<IList<TeacherDTO>> GetTeacher(string filter)
         {
-            var Teachers = await _context.Teachers.Select(x => new TeacherDTO
-            {   Id= x.Id,
-                Name = x.Name
-            }).ToListAsync();
-            return Teachers;
-        }
-        public async Task<IList<ClassroomDTO>> GetClassroom()
-        {
-            var Classrooms = await _context.Classrooms.Select(x => new ClassroomDTO
+            
+            if (filter != null)
             {
-                Id = x.Id,
-                Name = x.Name
-            }).ToListAsync();
-            return Classrooms;
-        }
-        public async Task<IList<GroupDTO>> GetGroup()
-        {
-            var Groups = await _context.Groups.Select(x => new GroupDTO
-            {   Id = x.Id,
-                Name = x.Name
-            }).ToListAsync();
-            return Groups;
-        }
-        public async Task<IList<DomainDTO>> GetDomain()
-        {
-            var Domains = await _context.Domains.Select(x => new DomainDTO
+                filter = filter.ToLower();
+                return await _context.Teachers.Where(x => x.Name.ToLower().Contains(filter) && x.IsDeleted == false).Select(x => new TeacherDTO
+                {
+                    Name = x.Name,
+                    Id = x.Id,
+                }).ToListAsync();
+            }
+            else
             {
-                Id = x.Id,
-                Url = x.Url
-            }).ToListAsync();
-            return Domains;
+                return await _context.Teachers.Where(x=>x.IsDeleted == false).Select(x => new TeacherDTO
+                {
+                    Id = x.Id,
+                    Name = x.Name
+                }).ToListAsync();
+            } 
         }
-        public async Task<IList<LessonTagDTO>> GetLessonTag()
+        public async Task<IList<ClassroomDTO>> GetClassroom(string filter)
         {
-            var LessonTags = await _context.LessonTags.Select(x => new LessonTagDTO
+            if (filter != null)
             {
-                Id = x.Id,
-                Name = x.Name
-            }).ToListAsync();
-            return LessonTags;
+                filter = filter.ToLower();
+                return await _context.Classrooms.Where(x => x.Name.ToLower().Contains(filter) && x.IsDeleted == false).Select(x => new ClassroomDTO
+                {
+                    Name = x.Name,
+                    Id = x.Id,
+                }).ToListAsync();
+            }
+            else
+            {
+                return await _context.Classrooms.Where(x=> x.IsDeleted == false).Select(x => new ClassroomDTO
+                {
+                    Id = x.Id,
+                    Name = x.Name
+                }).ToListAsync();
+            }
         }
-        public async Task<IList<LessonNameDTO>> GetLessonName()
+        public async Task<IList<GroupDTO>> GetGroup(string filter)
         {
-            var LessonNames = await _context.LessonNames.Select(x => new LessonNameDTO
+            if (filter != null)
             {
-                Id = x.Id,
-                Name = x.Name
-            }).ToListAsync();
-            return LessonNames;
+                filter = filter.ToLower();
+                return await _context.Groups.Where(x => x.Name.ToLower().Contains(filter) && x.IsDeleted == false).Select(x => new GroupDTO
+                {
+                    Name = x.Name,
+                    Id = x.Id,
+                }).ToListAsync();
+            }
+            else
+            {
+                return await _context.Groups.Where(x=> x.IsDeleted == false).Select(x => new GroupDTO
+                {
+                    Id = x.Id,
+                    Name = x.Name
+                }).ToListAsync();
+            }
+        }
+        public async Task<IList<DomainDTO>> GetDomains(string filter)
+        {
+            if (filter != null)
+            {
+                filter = filter.ToLower();
+                return await _context.Domains.Where(x => x.Url.ToLower().Contains(filter)).Select(x => new DomainDTO
+                {
+                    Url = x.Url,
+                    Id = x.Id,
+                }).ToListAsync();
+            }
+            else
+            {
+                return await _context.Domains.Select(x => new DomainDTO
+                {
+                    Id = x.Id,
+                    Url = x.Url
+                }).ToListAsync();
+            }
+        }
+        public async Task<IList<LessonTagDTO>> GetLessonTag(string filter)
+        {
+            if (filter != null)
+            {
+                filter = filter.ToLower();
+                return await _context.LessonTags.Where(x => x.Name.ToLower().Contains(filter) && x.IsDeleted == false).Select(x => new LessonTagDTO
+                {
+                    Name = x.Name,
+                    Id = x.Id,
+                }).ToListAsync();
+            }
+            else
+            {
+                return await _context.LessonTags.Where(x => x.IsDeleted == false).Select(x => new LessonTagDTO
+                {
+                    Id = x.Id,
+                    Name = x.Name
+                }).ToListAsync();
+            }
+        }
+        public async Task<IList<LessonNameDTO>> GetLessonName(string filter)
+        {
+            if (filter != null)
+            {
+                filter = filter.ToLower();
+                return await _context.LessonNames.Where(x => x.Name.ToLower().Contains(filter) && x.IsDeleted == false).Select(x => new LessonNameDTO
+                {
+                    Name = x.Name,
+                    Id = x.Id,
+                }).ToListAsync();
+            }
+            else
+            {
+                return await _context.LessonNames.Where(x => x.IsDeleted == false).Select(x => new LessonNameDTO
+                {
+                    Id = x.Id,
+                    Name = x.Name
+                }).ToListAsync();
+            }
         }
         public async Task<IList<TimeIntervalDTO>> GetTimeInterval()
         {
-            var TimeIntervals = await _context.TimeIntervals.Select(x => new TimeIntervalDTO
+            var TimeIntervals = await _context.TimeIntervals.Where(x => x.IsDeleted == false).Select(x => new TimeIntervalDTO
             {
                 Id = x.Id,
                 StartTime = x.StartTime,

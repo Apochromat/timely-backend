@@ -14,6 +14,8 @@ namespace timely_backend.Models
         public Classroom Classroom { get; set; }
         public DateTime Date { get; set; }
         public Guid? ChainId { get; set; }
+        public bool IsDeleted { get; set; } = false;
+        public bool IsReadOnly { get; set; } = false;
        
     }
 }
