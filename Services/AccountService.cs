@@ -1,5 +1,6 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
@@ -190,7 +191,7 @@ namespace timely_backend.Services {
             var user = await _userManager.FindByEmailAsync(email);
             if (user == null) throw new KeyNotFoundException("User not found");
 
-            user.FullName = userProfileEdit.FullName;
+            user.FullName = Regex.Replace(userProfileEdit.FullName, @"\s+", " ");
             await _context.SaveChangesAsync();
 
             _logger.LogInformation("User`s profile was modified successfully");
