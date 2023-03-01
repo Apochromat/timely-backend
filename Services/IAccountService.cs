@@ -3,6 +3,8 @@
 namespace timely_backend.Services {
     public interface IAccountService {
         Task<TokenResponse> Register(UserRegisterModel userRegisterModel);
+        Task<Response> DeleteUser(string email);
+
         Task<Response> SendEmailConfirmationLetter(string email);
         Task<Response> ConfirmEmail(string email, string token);
         Task<TokenResponse> Login(LoginCredentials loginCredentials);

@@ -36,6 +36,12 @@ namespace timely_backend.Controllers {
             try {
                 return await _account.Register(userRegisterModel);
             }
+            catch (MailKit.Net.Smtp.SmtpCommandException e) {
+                _logger.LogError(e,
+                    $"Message: {e.Message} TraceId: {Activity.Current?.Id ?? HttpContext.TraceIdentifier}");
+                await _account.DeleteUser(userRegisterModel.Email);
+                return Problem(statusCode: 400, title: "Incorrect email address");
+            }
             catch (InvalidOperationException e) {
                 _logger.LogError(e,
                     $"Message: {e.Message} TraceId: {Activity.Current?.Id ?? HttpContext.TraceIdentifier}");
