@@ -1,4 +1,5 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
+using System.Net.Mail;
 using System.Security.Claims;
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Identity;
@@ -53,7 +54,7 @@ namespace timely_backend.Services {
                 throw new ArgumentException("User with this email already exists");
 
             User user = ModelConverter.ToUser(userRegisterModel);
-
+            
             var result = await _userManager.CreateAsync(user, userRegisterModel.Password);
             if (result.Succeeded) {
                 _logger.LogInformation("Successful register");
@@ -86,6 +87,24 @@ namespace timely_backend.Services {
         }
 
         /// <summary>
+        /// Deletes an user if it exists
+        /// </summary>
+        public async Task<Response> DeleteUser(string email) {
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null) return new Response() {
+                Status = "Ok",
+                Message = "There is no user with this email"
+            };
+
+            await _userManager.DeleteAsync(user);
+            
+            return new Response() {
+                Status = "Ok",
+                Message = "User was deleted successfully"
+            };
+        }
+        
+        /// <summary>
         /// Send Email confirmation letter
         /// </summary>
         public async Task<Response> SendEmailConfirmationLetter(string email) {
@@ -99,6 +118,7 @@ namespace timely_backend.Services {
             var view = EmailConfirmationView.Page(user.FullName, config.GetValue<string>("SiteURL"), token);
 
             await _emailSender.SendEmailAsync(user.Email, config.GetValue<string>("ConfirmationTitle"), view);
+
             _logger.LogInformation("Email confirmation letter successfully sent");
             return new Response() {
                 Status = "Ok",
