@@ -9,7 +9,7 @@ namespace timely_backend.Models
 
         public TimeOnly StartTime { get; set; }
         public TimeOnly EndTime { get; set; }
-        //theDate.ToString("yyyy-MM-dd HH':'mm':'ss")
+        public bool IsDeleted { get; set; } = false;
 
 
     }
