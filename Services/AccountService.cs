@@ -54,7 +54,7 @@ namespace timely_backend.Services {
                 throw new ArgumentException("User with this email already exists");
 
             User user = ModelConverter.ToUser(userRegisterModel);
-            
+
             var result = await _userManager.CreateAsync(user, userRegisterModel.Password);
             if (result.Succeeded) {
                 _logger.LogInformation("Successful register");
@@ -91,19 +91,20 @@ namespace timely_backend.Services {
         /// </summary>
         public async Task<Response> DeleteUser(string email) {
             var user = await _userManager.FindByEmailAsync(email);
-            if (user == null) return new Response() {
-                Status = "Ok",
-                Message = "There is no user with this email"
-            };
+            if (user == null)
+                return new Response() {
+                    Status = "Ok",
+                    Message = "There is no user with this email"
+                };
 
             await _userManager.DeleteAsync(user);
-            
+
             return new Response() {
                 Status = "Ok",
                 Message = "User was deleted successfully"
             };
         }
-        
+
         /// <summary>
         /// Send Email confirmation letter
         /// </summary>
@@ -158,6 +159,9 @@ namespace timely_backend.Services {
                 throw new ArgumentException("Incorrect username or password");
             }
 
+            var user = _userManager.Users.Where(x => x.Email == loginCredentials.Email).Include(x => x.Group)
+                .Include(x => x.Teacher).First();
+
             var now = DateTime.UtcNow;
             var jwt = new JwtSecurityToken(
                 issuer: JwtConfiguration.Issuer,
@@ -170,9 +174,14 @@ namespace timely_backend.Services {
 
             _logger.LogInformation("Successful login");
 
-            return new TokenResponse(new JwtSecurityTokenHandler().WriteToken(jwt),
-                identity.Claims.Where(c => c.Type == ClaimTypes.Name).Select(c => c.Value).SingleOrDefault(""),
-                identity.Claims.Where(c => c.Type == ClaimTypes.Role).Select(c => c.Value).ToList());
+            return new TokenResponse {
+                Token = new JwtSecurityTokenHandler().WriteToken(jwt),
+                Email = identity.Claims.Where(c => c.Type == ClaimTypes.Name).Select(c => c.Value).SingleOrDefault(""),
+                Role = identity.Claims.Where(c => c.Type == ClaimTypes.Role).Select(c => c.Value).ToList(),
+                IsEmailConfirmed = await _userManager.IsEmailConfirmedAsync(user),
+                Teacher = user.Teacher,
+                Group = user.Group
+            };
         }
 
         /// <summary>
@@ -241,14 +250,14 @@ namespace timely_backend.Services {
                 Message = "Password successfully changed"
             };
         }
-        
+
         /// <summary>
         /// Set user`s group
         /// </summary>
         public async Task<Response> SetGroup(string email, Guid groupId) {
             var user = await _userManager.FindByEmailAsync(email);
             if (user == null) throw new KeyNotFoundException("User not found");
-            
+
             user = _userManager.Users.Where(u => u.Email == email).Include(u => u.Roles).ThenInclude(r => r.Role)
                 .Include(u => u.Teacher).Include(u => u.Group)
                 .First();
@@ -263,14 +272,14 @@ namespace timely_backend.Services {
                 Message = "Group successfully set"
             };
         }
-        
+
         /// <summary>
         /// Remove user`s group
         /// </summary>
         public async Task<Response> RemoveGroup(string email) {
             var user = await _userManager.FindByEmailAsync(email);
             if (user == null) throw new KeyNotFoundException("User not found");
-            
+
             user = _userManager.Users.Where(u => u.Email == email).Include(u => u.Roles).ThenInclude(r => r.Role)
                 .Include(u => u.Teacher).Include(u => u.Group)
                 .First();
