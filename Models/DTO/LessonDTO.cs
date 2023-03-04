@@ -12,7 +12,7 @@ namespace timely_backend.Models.DTO
         public LessonTagDTO Tag { get; set; }
         [Required(ErrorMessage = "Необходимо указать номер группы")]
 
-        public GroupDTO Group { get; set; }
+        public IList<GroupDTO> Group { get; set; }
         [Required(ErrorMessage = "Необходимо указать учителя")]
 
         public TeacherDTO Teacher { get; set; }

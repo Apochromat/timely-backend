@@ -1,7 +1,10 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Linq;
+using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using Microsoft.EntityFrameworkCore;
+using Org.BouncyCastle.Crypto;
 using Serilog;
+using ServiceStack;
 using timely_backend.Models;
 using timely_backend.Models.DTO;
 using static System.Runtime.InteropServices.JavaScript.JSType;
@@ -26,8 +29,9 @@ namespace timely_backend.Services
             var classroom = await _context.Classrooms.FindAsync(lesson.ClassroomId);
             if (classroom == null) throw new KeyNotFoundException("this classroom with this id does not exist");
             
-            var group = await _context.Groups.FindAsync(lesson.GroupId);
-            if (group == null) throw new KeyNotFoundException("group with this id does not exist");
+            var groups = _context.Groups.Where(e => lesson.GroupId.Contains(e.Id)).ToList();
+            /*var existGroup = _context.Groups.All(e => lesson.GroupId.Contains(e.Id));
+            if (existGroup == false) throw new KeyNotFoundException("group with this id does not exist");*/
 
             var lessonName = await _context.LessonNames.FindAsync(lesson.NameId);
             if (lessonName == null) throw new KeyNotFoundException("lessonName with this id does not exist");
@@ -38,25 +42,38 @@ namespace timely_backend.Services
             var timeInterval = await _context.TimeIntervals.FindAsync(lesson.TimeIntervalId);
             if (timeInterval == null) throw new KeyNotFoundException("this timeInterval does not exist");
 
-            var sameLesson = await _context.Lessons.FirstOrDefaultAsync(x => x.Name == lessonName && x.Tag == lessonTag && x.Group == group && x.Classroom == classroom && x.Teacher == teacher && x.TimeInterval == timeInterval && x.Date == lesson.Date) ;
+            /*var sameLesson = await _context.Lessons.FirstOrDefaultAsync(x => x.Name == lessonName && x.Tag == lessonTag && x.Group == groups && x.Classroom == classroom && x.Teacher == teacher && x.TimeInterval == timeInterval && x.Date.Date == lesson.Date.Date) ;
             if (sameLesson != null)
             {
                 throw new ArgumentException("this lesson is already exist");
-            }
-            sameLesson = await _context.Lessons.FirstOrDefaultAsync(x=> x.Teacher == teacher && x.TimeInterval == timeInterval && x.Date == lesson.Date);
+            }*/
+           var sameLesson = await _context.Lessons.FirstOrDefaultAsync(x=> x.Teacher == teacher && x.TimeInterval == timeInterval && x.Date.Date == lesson.Date.Date);
             if (sameLesson != null)
             {
-                throw new ArgumentException("this lesson is already exist with" + teacher.Name );
+                throw new ArgumentException("this lesson is already exist with " + teacher.Name );
             }
-            sameLesson = await _context.Lessons.FirstOrDefaultAsync(x => x.Classroom == classroom && x.TimeInterval == timeInterval && x.Date == lesson.Date);
-            if (sameLesson != null)
+            sameLesson = await _context.Lessons.FirstOrDefaultAsync(x => x.Classroom == classroom && x.TimeInterval == timeInterval && x.Date.Date == lesson.Date.Date);
+            if (sameLesson != null && sameLesson.Classroom.Name.ToLower() != "онлайн")
             {
-                throw new ArgumentException("this lesson is already exist with" + classroom.Name);
+                throw new ArgumentException("this lesson is already exist with " + classroom.Name);
             }
-            sameLesson = await _context.Lessons.FirstOrDefaultAsync(x => x.Group == group && x.TimeInterval == timeInterval && x.Date == lesson.Date);
-            if (sameLesson != null)
+            /* var intersects = groups.Where(g => _context.Lessons.Where(l => l.Group == g).Where(l => l.TimeInterval == timeInterval && l.Date.Date == lesson.Date.Date).FirstOrDefaultAsync());
+             if (intersects != null)
+             {
+                 throw new ArgumentException("this lesson is already exist " + intersects.Name);
+
+             }*/
+            bool interesct = false;
+            foreach (var g in groups)
             {
-                throw new ArgumentException("this lesson is already exist with" + group.Name);
+                if (_context.Lessons.Include(x=>x.Group).Where(l => l.Group.Contains(g) && l.TimeInterval == timeInterval && l.Date.Date == lesson.Date.Date).ToList().Count > 0)
+                {
+                    interesct = true; break;
+                }
+            }
+            if (interesct)
+            {
+                throw new ArgumentException("this lesson intersects some group");
             }
 
             await _context.Lessons.AddAsync(new Lesson
@@ -64,7 +81,7 @@ namespace timely_backend.Services
                 Name = lessonName,
                 Tag = lessonTag,
                 TimeInterval = timeInterval,
-                Group = group,
+                Group = groups,
                 Teacher= teacher,
                 Classroom= classroom,
                 Date = lesson.Date,
@@ -80,8 +97,9 @@ namespace timely_backend.Services
             var classroom = await _context.Classrooms.FindAsync(lesson.ClassroomId);
             if (classroom == null) throw new KeyNotFoundException("this classroom with this id does not exist");
 
-            var Group = await _context.Groups.FindAsync(lesson.GroupId);
-            if (Group == null) throw new KeyNotFoundException("group with this id does not exist");
+            var groups = _context.Groups.Where(e => lesson.GroupId.Contains(e.Id)).ToList();
+            /*var existGroup = _context.Groups.All(e => lesson.GroupId.Contains(e.Id));
+            if (existGroup == false) throw new KeyNotFoundException("group with this id does not exist");*/
 
             var LessonName = await _context.LessonNames.FindAsync(lesson.NameId);
             if (LessonName == null) throw new KeyNotFoundException("lessonName with this id does not exist");
@@ -95,31 +113,41 @@ namespace timely_backend.Services
             var Lesson = await _context.Lessons.FindAsync(id);
             if (Lesson == null) throw new KeyNotFoundException("Lesson with this id does not exist");
 
-            var sameLesson = await _context.Lessons.FirstOrDefaultAsync(x => x.Name == LessonName && x.Tag == lessonTag && x.Group == Group && x.Classroom == classroom && x.Teacher == teacher && x.TimeInterval == timeInterval && x.Date == lesson.Date);
-            if (sameLesson != null)
-            {
-                throw new ArgumentException("this lesson is already exist");
-            }
-            sameLesson = await _context.Lessons.FirstOrDefaultAsync(x => x.Teacher == teacher && x.TimeInterval == timeInterval && x.Date == lesson.Date);
-            if (sameLesson != null)
+           var sameLesson = await _context.Lessons.FirstOrDefaultAsync(x => x.Teacher == teacher && x.TimeInterval == timeInterval && x.Date.Date == lesson.Date.Date);
+            if (sameLesson != null && sameLesson.Id != id)
             {
                 throw new ArgumentException("this lesson is already exist with " + teacher.Name);
             }
-            sameLesson = await _context.Lessons.FirstOrDefaultAsync(x => x.Classroom == classroom && x.TimeInterval == timeInterval && x.Date == lesson.Date);
-            if (sameLesson != null)
+            sameLesson = await _context.Lessons.FirstOrDefaultAsync(x => x.Classroom == classroom && x.TimeInterval == timeInterval && x.Date.Date == lesson.Date.Date);
+            if (sameLesson != null && sameLesson.Classroom.Name.ToLower() != "онлайн" && sameLesson.Id != id)
             {
-                throw new ArgumentException("this lesson is already exist with" + classroom.Name);
+                throw new ArgumentException("this lesson is already exist with " + classroom.Name);
             }
-            sameLesson = await _context.Lessons.FirstOrDefaultAsync(x => x.Group == Group && x.TimeInterval == timeInterval && x.Date == lesson.Date);
-            if (sameLesson != null)
+            /* var intersects = groups.FirstOrDefault(g => _context.Lessons.Where(l => l.Group.Contains(g)).Where(l => l.TimeInterval == timeInterval && l.Date.Date == lesson.Date.Date).ToList().Count > 0);
+             if (intersects != null && intersects.Id != id)
+             {
+                 throw new ArgumentException("this lesson is already exist " + intersects.Name);
+             }*/
+
+            // ИСПРАВИТЬ !!!
+            bool interesct = false;
+            foreach (var g in groups)
             {
-                throw new ArgumentException("this lesson is already exist with" + Group.Name);
+                if (_context.Lessons.Include(x => x.Group).Where(l => l.Group.Contains(g) && l.TimeInterval == timeInterval && l.Date.Date == lesson.Date.Date).ToList().Count > 0)
+                {
+                    interesct = true; break;
+                }
             }
+            if (interesct)
+            {
+                throw new ArgumentException("this lesson intersects some group"); 
+            }
+            // ИСПРАВИТЬ !!!
 
             Lesson.Name = LessonName;
             Lesson.Tag = lessonTag;
             Lesson.TimeInterval = timeInterval;
-            Lesson.Group = Group;
+            Lesson.Group = groups;
             Lesson.Teacher = teacher;
             Lesson.Classroom = classroom;
             Lesson.Date = lesson.Date;
@@ -457,8 +485,7 @@ namespace timely_backend.Services
                 throw new ArgumentException("this timeInterval is already exist");
             }
             var error = await _context.TimeIntervals.FirstOrDefaultAsync(x => x.StartTime <= timeInterval.EndTime && x.EndTime >= timeInterval.StartTime || x.StartTime <= timeInterval.StartTime && x.EndTime >= timeInterval.EndTime || x.StartTime >= timeInterval.StartTime && x.EndTime <= timeInterval.EndTime);
-            Console.WriteLine(id);
-            Console.WriteLine(error.Id);
+           
             if (error != null && error.Id != id)
             {
                 throw new ArgumentException("this timeInterval intersects another one");

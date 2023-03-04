@@ -12,7 +12,7 @@ namespace timely_backend.Models.DTO
         public Guid TagId { get; set; }
         [Required(ErrorMessage = "Необходимо указать id группы")]
 
-        public Guid GroupId { get; set; }
+        public IList<Guid> GroupId { get; set; }
         [Required(ErrorMessage = "Необходимо указать id учителя")]
 
         public Guid TeacherId { get; set; }

@@ -43,21 +43,7 @@ namespace timely_backend {
             return temp;
         }
 
-        public static LessonDTO ToLessonDTO(Lesson model) {
-            var temp = new LessonDTO {
-                Name = new LessonNameDTO { Name = model.Name.Name, Id = model.Id },
-                Tag = new LessonTagDTO { Name = model.Name.Name, Id = model.Id },
-                Group = new GroupDTO { Name = model.Name.Name, Id = model.Id },
-                Teacher = new TeacherDTO { Name = model.Name.Name, Id = model.Id },
-                TimeInterval = new TimeIntervalDTO
-                    { StartTime = model.TimeInterval.StartTime, EndTime = model.TimeInterval.EndTime, Id = model.Id },
-                Date = model.Date,
-                Classroom = new ClassroomDTO { Name = model.Classroom.Name, Id = model.Classroom.Id },
-                ChainId = model.ChainId,
-                Id = model.Id
-            };
-            return temp;
-        }
+        
 
         public static LessonNameDTO ToLessonNameDTO(LessonName model) {
             var temp = new LessonNameDTO {
@@ -75,11 +61,12 @@ namespace timely_backend {
             return temp;
         }
 
-        public static GroupDTO ToGroupDTO(Models.Group model) {
-            var temp = new GroupDTO {
-                Id = model.Id,
-                Name = model.Name
-            };
+        public static IList<GroupDTO> ToGroupDTO(IList<Models.Group> model) {
+            var temp = (model.Select(x=> new GroupDTO
+            {
+                Id = x.Id,
+                Name = x.Name,
+            })).ToList();
             return temp;
         }
 
