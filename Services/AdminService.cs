@@ -130,18 +130,14 @@ namespace timely_backend.Services
              }*/
 
             // ИСПРАВИТЬ !!!
-            bool interesct = false;
             foreach (var g in groups)
             {
                 if (_context.Lessons.Include(x => x.Group).Where(l => l.Group.Contains(g) && l.TimeInterval == timeInterval && l.Date.Date == lesson.Date.Date).ToList().Count > 0)
                 {
-                    interesct = true; break;
+                    if (!Lesson.Group.Contains(g)) throw new ArgumentException("this lesson is already exist " + g.Name);
                 }
             }
-            if (interesct)
-            {
-                throw new ArgumentException("this lesson intersects some group"); 
-            }
+            
             // ИСПРАВИТЬ !!!
 
             Lesson.Name = LessonName;
