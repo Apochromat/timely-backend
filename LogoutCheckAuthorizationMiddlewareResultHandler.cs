@@ -19,12 +19,10 @@ public class LogoutCheckAuthorizationMiddlewareResultHandler : IAuthorizationMid
         HttpContext context,
         AuthorizationPolicy policy,
         PolicyAuthorizationResult authorizeResult) {
-
-        if (await _cacheService.CheckToken(context.Request.Headers["Authorization"])) {
+        
+        if (await _cacheService.CheckToken(context.Request.Headers["Authorization"].ToString() ?? "")) {
             context.Response.Clear();
             context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
-            await context.Response.WriteAsJsonAsync(new Response
-                { Status = "401", Message = "Unauthorized. Token is disabled." });
             return;
         }
         
