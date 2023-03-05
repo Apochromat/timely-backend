@@ -7,7 +7,7 @@ public class UserProfile {
     [DisplayName("userName")] public String? UserName { get; set; } = "";
     [DisplayName("email")] public String? Email { get; set; } = "";
     [DisplayName("isEmailConfirmed")] public Boolean IsEmailConfirmed { get; set; }
-    [DisplayName("group")] public Group? Group { get; set; }
-    [DisplayName("teacher")] public Teacher? Teacher { get; set; }
+    [DisplayName("group")] public GroupDTO? Group { get; set; }
+    [DisplayName("teacher")] public TeacherDTO? Teacher { get; set; }
     [DisplayName("roles")] public List<String> Roles { get; set; }
 }

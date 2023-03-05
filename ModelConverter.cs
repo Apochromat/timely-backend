@@ -36,8 +36,8 @@ namespace timely_backend {
                 FullName = user.FullName,
                 Email = user.Email,
                 Roles = user.Roles.Select(r => r.Role).Select(role => role.Name.ToString()).ToList(),
-                Teacher = user.Teacher,
-                Group = user.Group,
+                Teacher = ToTeacherDTO(user.Teacher),
+                Group = ToGroupDTO(user.Group),
                 IsEmailConfirmed = user.EmailConfirmed
             };
             return temp;
@@ -67,6 +67,14 @@ namespace timely_backend {
                 Id = x.Id,
                 Name = x.Name,
             })).ToList();
+            return temp;
+        }
+        
+        public static GroupDTO ToGroupDTO(Models.Group model) {
+            var temp = new GroupDTO {
+                Id = model.Id,
+                Name = model.Name,
+            };
             return temp;
         }
 
