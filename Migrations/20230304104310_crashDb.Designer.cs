@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using timely_backend;
 
@@ -10,29 +11,16 @@ using timely_backend;
 namespace timely_backend.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230304104310_crashDb")]
+    partial class crashDb
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("ProductVersion", "7.0.3")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
-
-            modelBuilder.Entity("GroupLesson", b =>
-                {
-                    b.Property<Guid>("GroupId")
-                        .HasColumnType("char(36)");
-
-                    b.Property<Guid>("LessonsId")
-                        .HasColumnType("char(36)");
-
-                    b.HasKey("GroupId", "LessonsId");
-
-                    b.HasIndex("LessonsId");
-
-                    b.ToTable("GroupLesson");
-                });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
                 {
@@ -160,11 +148,16 @@ namespace timely_backend.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("tinyint(1)");
 
+                    b.Property<Guid?>("LessonId")
+                        .HasColumnType("char(36)");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("longtext");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("LessonId");
 
                     b.ToTable("Groups");
                 });
@@ -414,21 +407,6 @@ namespace timely_backend.Migrations
                     b.ToTable("UserRoles", (string)null);
                 });
 
-            modelBuilder.Entity("GroupLesson", b =>
-                {
-                    b.HasOne("timely_backend.Models.Group", null)
-                        .WithMany()
-                        .HasForeignKey("GroupId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("timely_backend.Models.Lesson", null)
-                        .WithMany()
-                        .HasForeignKey("LessonsId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
                 {
                     b.HasOne("timely_backend.Models.Role", null)
@@ -463,6 +441,13 @@ namespace timely_backend.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("timely_backend.Models.Group", b =>
+                {
+                    b.HasOne("timely_backend.Models.Lesson", null)
+                        .WithMany("Group")
+                        .HasForeignKey("LessonId");
                 });
 
             modelBuilder.Entity("timely_backend.Models.Lesson", b =>
@@ -540,6 +525,11 @@ namespace timely_backend.Migrations
                     b.Navigation("Role");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("timely_backend.Models.Lesson", b =>
+                {
+                    b.Navigation("Group");
                 });
 
             modelBuilder.Entity("timely_backend.Models.Role", b =>

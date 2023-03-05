@@ -153,10 +153,10 @@ namespace timely_backend.Services
             DateTime startOfWeek = date.AddDays(-1 * (int)day);
             DateTime endOfWeek = startOfWeek.AddDays(6);
 
-            var error = await _context.Groups.FindAsync(id);
-            if (error == null) throw new ArgumentException("group with this id does not exist");
+            var group = await _context.Groups.FindAsync(id);
+            if (group == null) throw new ArgumentException("group with this id does not exist");
 
-            var result = await _context.Lessons.Where(x => x.Date <= endOfWeek && x.Date >= startOfWeek && x.Group.Id == id).Select(x => new LessonDTO
+            var result = await _context.Lessons.Where(x => x.Date <= endOfWeek && x.Date >= startOfWeek).Include(o => o.Group).Where(o => o.Group.Contains(group)).Select(x => new LessonDTO
             {
                 Id = x.Id,
                 Name = ModelConverter.ToLessonNameDTO(x.Name),
