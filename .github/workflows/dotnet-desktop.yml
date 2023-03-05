@@ -12,6 +12,9 @@ jobs:
     steps:
     - name: Checkout source code
       uses: actions/checkout@v2
+      
+    - name: Set owner
+      run: chown -R www-data:www-data /var/www/timely-backend 
     
     - name: Build project
       run: dotnet publish -c Debug -o /var/www/timely-backend
