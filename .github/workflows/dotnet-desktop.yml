@@ -23,4 +23,4 @@ jobs:
       run: chown -R www-data:www-data /var/www/timely-backend 
       
     - name: Restart service
-      run: sudo systemctl restart kestrel-social.service
+      run: sudo systemctl restart kestrel-timely-backend.service
