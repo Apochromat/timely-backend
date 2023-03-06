@@ -20,6 +20,9 @@ namespace timely_backend.Models.DTO
         public TimeIntervalDTO TimeInterval { get; set; }
         [Required(ErrorMessage = "Необходимо указать дату")]
         public DateTime Date { get; set; }
+
+        public Boolean IsReadOnly { get; set; } = false;
+        
         [Required(ErrorMessage = "Необходимо указать номер аудитории")]
         public ClassroomDTO Classroom { get; set; }
         public Guid? Id { get; set; }

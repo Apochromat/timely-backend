@@ -179,8 +179,8 @@ namespace timely_backend.Services {
                 Email = identity.Claims.Where(c => c.Type == ClaimTypes.Name).Select(c => c.Value).SingleOrDefault(""),
                 Role = identity.Claims.Where(c => c.Type == ClaimTypes.Role).Select(c => c.Value).ToList(),
                 IsEmailConfirmed = await _userManager.IsEmailConfirmedAsync(user),
-                Teacher = user.Teacher,
-                Group = user.Group
+                Teacher = user.Teacher == null ? null : ModelConverter.ToTeacherDTO(user.Teacher),
+                Group = user.Group == null ? null : ModelConverter.ToGroupDTO(user.Group),
             };
         }
 

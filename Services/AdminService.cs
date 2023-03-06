@@ -112,6 +112,7 @@ namespace timely_backend.Services
 
             var Lesson = await _context.Lessons.FindAsync(id);
             if (Lesson == null) throw new KeyNotFoundException("Lesson with this id does not exist");
+            if (Lesson.IsReadOnly) throw new InvalidOperationException("Lesson is read-only");
 
            var sameLesson = await _context.Lessons.FirstOrDefaultAsync(x => x.Teacher == teacher && x.TimeInterval == timeInterval && x.Date.Date == lesson.Date.Date);
             if (sameLesson != null && sameLesson.Id != id)
@@ -129,7 +130,7 @@ namespace timely_backend.Services
                  throw new ArgumentException("this lesson is already exist " + intersects.Name);
              }*/
 
-            // ИСПРАВИТЬ !!!
+            // ИСПРАВИТЬ !!! 
             foreach (var g in groups)
             {
                 if (_context.Lessons.Include(x => x.Group).Where(l => l.Group.Contains(g) && l.TimeInterval == timeInterval && l.Date.Date == lesson.Date.Date).ToList().Count > 0)
@@ -158,6 +159,8 @@ namespace timely_backend.Services
             {
                 throw new KeyNotFoundException("this teacher does not exist");
             }
+            if (lesson.IsReadOnly) throw new InvalidOperationException("Lesson is read-only");
+
             _context.Lessons.Remove(lesson);
             await _context.SaveChangesAsync();
         }

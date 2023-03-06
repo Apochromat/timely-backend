@@ -680,6 +680,12 @@ namespace timely_backend.Controllers
                     $"Message: {e.Message} TraceId: {Activity.Current?.Id ?? HttpContext.TraceIdentifier}");
                 return Problem(statusCode: 400, title: e.Message);
             }
+            catch (InvalidOperationException e)
+            {
+                _logger.LogError(e,
+                    $"Message: {e.Message} TraceId: {Activity.Current?.Id ?? HttpContext.TraceIdentifier}");
+                return Problem(statusCode: 405, title: e.Message);
+            }
             catch (KeyNotFoundException e)
             {
                 _logger.LogError(e,
@@ -716,7 +722,12 @@ namespace timely_backend.Controllers
                     $"Message: {e.Message} TraceId: {Activity.Current?.Id ?? HttpContext.TraceIdentifier}");
                 return Problem(statusCode: 400, title: e.Message);
             }
-
+            catch (InvalidOperationException e)
+            {
+                _logger.LogError(e,
+                    $"Message: {e.Message} TraceId: {Activity.Current?.Id ?? HttpContext.TraceIdentifier}");
+                return Problem(statusCode: 405, title: e.Message);
+            }
             catch (Exception e)
             {
                 _logger.LogError(e,
