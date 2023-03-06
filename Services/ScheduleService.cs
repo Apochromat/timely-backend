@@ -166,7 +166,8 @@ namespace timely_backend.Services
                 TimeInterval= ModelConverter.ToTimeIntervalDTO(x.TimeInterval),
                 Classroom = ModelConverter.ToClassroomDTO(x.Classroom),
                 ChainId = x.ChainId,
-                Date = x.Date
+                Date = x.Date,
+                IsReadOnly = x.IsReadOnly
             }).ToListAsync();
             return result;
         }
@@ -190,7 +191,8 @@ namespace timely_backend.Services
                 TimeInterval = ModelConverter.ToTimeIntervalDTO(x.TimeInterval),
                 Classroom = ModelConverter.ToClassroomDTO(x.Classroom),
                 ChainId = x.ChainId,
-                Date = x.Date
+                Date = x.Date,
+                IsReadOnly = x.IsReadOnly
 
             }).ToListAsync();
             return result;
@@ -215,7 +217,8 @@ namespace timely_backend.Services
                 TimeInterval = ModelConverter.ToTimeIntervalDTO(x.TimeInterval),
                 Classroom = ModelConverter.ToClassroomDTO(x.Classroom),
                 ChainId = x.ChainId,
-                Date = x.Date
+                Date = x.Date,
+                IsReadOnly = x.IsReadOnly
 
             }).ToListAsync();
             return result;

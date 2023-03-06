@@ -10,7 +10,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.StackExchangeRedis;
+using Quartz;
 using timely_backend;
+using timely_backend.Jobs;
 using timely_backend.Models;
 using timely_backend.Models.Enum;
 using timely_backend.Services;
@@ -31,6 +33,23 @@ builder.Services.AddControllers().AddJsonOptions(opts => {
     var enumConverter = new JsonStringEnumConverter();
     opts.JsonSerializerOptions.Converters.Add(enumConverter);
 });
+
+// Add Quartz Jobs
+builder.Services.AddQuartz(q =>
+{
+    q.UseMicrosoftDependencyInjectionScopedJobFactory();
+    // Just use the name of your job that you created in the Jobs folder.
+    var jobKey = new JobKey("SetLessonsReadonlyJob");
+    q.AddJob<SetLessonsReadonlyJob>(opts => opts.WithIdentity(jobKey));
+    
+    q.AddTrigger(opts => opts
+        .ForJob(jobKey)
+        .WithIdentity("SetLessonsReadonlyJob-trigger")
+        //This Cron interval can be described as "run every 10 minutes" (when second is zero)
+        .WithCronSchedule("* */10 * ? * *")
+    );
+});
+builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
 
 // Connect DB
 builder.Services.AddDbContext<ApplicationDbContext>();
