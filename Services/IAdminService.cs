@@ -1,5 +1,6 @@
 ﻿using timely_backend.Models;
 using timely_backend.Models.DTO;
+using timely_backend.Models.Enum;
 
 namespace timely_backend.Services
 {
@@ -39,7 +40,8 @@ namespace timely_backend.Services
         Task CreateLesson(LessonFromId lesson);
         Task EditLesson (LessonFromId lesson , Guid id);
         Task DeleteLesson(Guid id);
-        Task DuplicateLesson(DateTime date);
+        Task DuplicateLesson(DuplicateDTO duplicateDTO);
+        Task<bool> IsLesssonIntersect(LessonDTO Lesson, DateTime Date);
     }
 
     

@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using Microsoft.EntityFrameworkCore;
@@ -7,6 +8,7 @@ using Serilog;
 using ServiceStack;
 using timely_backend.Models;
 using timely_backend.Models.DTO;
+using timely_backend.Models.Enum;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using Group = timely_backend.Models.Group;
 
@@ -15,9 +17,11 @@ namespace timely_backend.Services
     public class AdminService : IAdminService
     {
         private readonly ApplicationDbContext _context;
+        private readonly IScheduleService _scheduleService;
         private readonly ILogger<AdminService> _logger;
-        public AdminService (ILogger<AdminService> logger, ApplicationDbContext context)
+        public AdminService (ILogger<AdminService> logger, ApplicationDbContext context, IScheduleService scheduleService)
         {
+            _scheduleService = scheduleService;
             _logger = logger;
             _context = context;
         }
@@ -42,11 +46,7 @@ namespace timely_backend.Services
             var timeInterval = await _context.TimeIntervals.FindAsync(lesson.TimeIntervalId);
             if (timeInterval == null) throw new KeyNotFoundException("this timeInterval does not exist");
 
-            /*var sameLesson = await _context.Lessons.FirstOrDefaultAsync(x => x.Name == lessonName && x.Tag == lessonTag && x.Group == groups && x.Classroom == classroom && x.Teacher == teacher && x.TimeInterval == timeInterval && x.Date.Date == lesson.Date.Date) ;
-            if (sameLesson != null)
-            {
-                throw new ArgumentException("this lesson is already exist");
-            }*/
+           
            var sameLesson = await _context.Lessons.FirstOrDefaultAsync(x=> x.Teacher == teacher && x.TimeInterval == timeInterval && x.Date.Date == lesson.Date.Date);
             if (sameLesson != null)
             {
@@ -57,24 +57,27 @@ namespace timely_backend.Services
             {
                 throw new ArgumentException("this lesson is already exist with " + classroom.Name);
             }
-            /* var intersects = groups.Where(g => _context.Lessons.Where(l => l.Group == g).Where(l => l.TimeInterval == timeInterval && l.Date.Date == lesson.Date.Date).FirstOrDefaultAsync());
-             if (intersects != null)
-             {
-                 throw new ArgumentException("this lesson is already exist " + intersects.Name);
 
+            /* bool interesct = false;
+             foreach (var g in groups)
+             {
+                 if (_context.Lessons.Include(x=>x.Group).Where(l => l.Group.Contains(g) && l.TimeInterval == timeInterval && l.Date.Date == lesson.Date.Date).ToList().Count > 0)
+                 {
+                     interesct = true; break;
+                 }
+             }
+             if (interesct)
+             {
+                 throw new ArgumentException("this lesson intersects some group");
              }*/
-            bool interesct = false;
             foreach (var g in groups)
             {
-                if (_context.Lessons.Include(x=>x.Group).Where(l => l.Group.Contains(g) && l.TimeInterval == timeInterval && l.Date.Date == lesson.Date.Date).ToList().Count > 0)
+                if (_context.Lessons.Include(x => x.Group).Where(l => l.Group.Contains(g) && l.TimeInterval == timeInterval && l.Date.Date == lesson.Date.Date).ToList().Count > 0)
                 {
-                    interesct = true; break;
+                    throw new ArgumentException("this lesson is already exist " + g.Name);
                 }
             }
-            if (interesct)
-            {
-                throw new ArgumentException("this lesson intersects some group");
-            }
+           
 
             await _context.Lessons.AddAsync(new Lesson
             {
@@ -114,7 +117,7 @@ namespace timely_backend.Services
             if (Lesson == null) throw new KeyNotFoundException("Lesson with this id does not exist");
             if (Lesson.IsReadOnly) throw new InvalidOperationException("Lesson is read-only");
 
-           var sameLesson = await _context.Lessons.FirstOrDefaultAsync(x => x.Teacher == teacher && x.TimeInterval == timeInterval && x.Date.Date == lesson.Date.Date);
+            var sameLesson = await _context.Lessons.FirstOrDefaultAsync(x => x.Teacher == teacher && x.TimeInterval == timeInterval && x.Date.Date == lesson.Date.Date);
             if (sameLesson != null && sameLesson.Id != id)
             {
                 throw new ArgumentException("this lesson is already exist with " + teacher.Name);
@@ -124,13 +127,8 @@ namespace timely_backend.Services
             {
                 throw new ArgumentException("this lesson is already exist with " + classroom.Name);
             }
-            /* var intersects = groups.FirstOrDefault(g => _context.Lessons.Where(l => l.Group.Contains(g)).Where(l => l.TimeInterval == timeInterval && l.Date.Date == lesson.Date.Date).ToList().Count > 0);
-             if (intersects != null && intersects.Id != id)
-             {
-                 throw new ArgumentException("this lesson is already exist " + intersects.Name);
-             }*/
+           
 
-            // ИСПРАВИТЬ !!! 
             foreach (var g in groups)
             {
                 if (_context.Lessons.Include(x => x.Group).Where(l => l.Group.Contains(g) && l.TimeInterval == timeInterval && l.Date.Date == lesson.Date.Date).ToList().Count > 0)
@@ -139,7 +137,6 @@ namespace timely_backend.Services
                 }
             }
             
-            // ИСПРАВИТЬ !!!
 
             Lesson.Name = LessonName;
             Lesson.Tag = lessonTag;
@@ -164,9 +161,51 @@ namespace timely_backend.Services
             _context.Lessons.Remove(lesson);
             await _context.SaveChangesAsync();
         }
-        public async Task DuplicateLesson(DateTime date)
+        public async Task DuplicateLesson(DuplicateDTO duplicateDTO)
         {
 
+            IList<LessonDTO> Lessons = null;
+           if (duplicateDTO.SchedulleType == TypeSchedulleEnum.Teacher)
+            {
+                Lessons = await _scheduleService.GetLessonsProfessor(duplicateDTO.DateToCopy, duplicateDTO.Id);
+            }
+           else if (duplicateDTO.SchedulleType == TypeSchedulleEnum.Classroom) {
+
+                Lessons = await _scheduleService.GetLessonsClassroom(duplicateDTO.DateToCopy, duplicateDTO.Id);
+            }
+           else if (duplicateDTO.SchedulleType == TypeSchedulleEnum.Group)
+            {
+                Lessons = await _scheduleService.GetLessonsGroup(duplicateDTO.DateToCopy, duplicateDTO.Id);
+            }
+            if (Lessons == null) throw new InvalidOperationException("На это неделе нет пар для дублирования");
+
+            // bool isLesson(Lesson, dateToCopy)
+
+        }
+        public async Task <bool> IsLesssonIntersect(LessonDTO lesson, DateTime Date)
+        {
+
+
+            /*var sameLesson = await _context.Lessons.FirstOrDefaultAsync(x => x.Teacher == teacher && x.TimeInterval == timeInterval && x.Date.Date == lesson.Date.Date);
+            if (sameLesson != null && sameLesson.Id != id)
+            {
+                throw new ArgumentException("this lesson is already exist with " + teacher.Name);
+            }
+            sameLesson = await _context.Lessons.FirstOrDefaultAsync(x => x.Classroom == classroom && x.TimeInterval == timeInterval && x.Date.Date == lesson.Date.Date);
+            if (sameLesson != null && sameLesson.Classroom.Name.ToLower() != "онлайн" && sameLesson.Id != id)
+            {
+                throw new ArgumentException("this lesson is already exist with " + classroom.Name);
+            }
+
+
+            foreach (var g in groups)
+            {
+                if (_context.Lessons.Include(x => x.Group).Where(l => l.Group.Contains(g) && l.TimeInterval == timeInterval && l.Date.Date == lesson.Date.Date).ToList().Count > 0)
+                {
+                    if (!Lesson.Group.Contains(g)) throw new ArgumentException("this lesson is already exist " + g.Name);
+                }
+            }*/
+            return false;
         }
         //domain
         public async Task CreateDomain(DomainDTO domain)
@@ -479,7 +518,7 @@ namespace timely_backend.Services
             }
             var sameInterval = await _context.TimeIntervals.FirstOrDefaultAsync(x => x.StartTime == timeInterval.StartTime && x.EndTime == timeInterval.EndTime);
 
-            if (sameInterval != null)
+            if (sameInterval != null && sameInterval.Id != id)
             {
                 throw new ArgumentException("this timeInterval is already exist");
             }
