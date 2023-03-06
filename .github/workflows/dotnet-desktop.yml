@@ -13,6 +13,9 @@ jobs:
     - name: Checkout source code
       uses: actions/checkout@v2
       
+    - name: Stop service
+      run: sudo systemctl stop kestrel-timely-backend.service
+      
     - name: Set owner
       run: chown -R www-data:www-data /var/www/timely-backend 
     
