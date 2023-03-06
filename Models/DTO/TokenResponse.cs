@@ -8,6 +8,6 @@ public class TokenResponse {
     [DisplayName("name")] public string? Email { get; set; }
     [DisplayName("role")] public IList<string>? Role { get; set; }
     [DisplayName("isEmailConfirmed")] public Boolean IsEmailConfirmed { get; set; }
-    [DisplayName("group")] public Group? Group { get; set; }
-    [DisplayName("teacher")] public Teacher? Teacher { get; set; }
+    [DisplayName("group")] public GroupDTO? Group { get; set; }
+    [DisplayName("teacher")] public TeacherDTO? Teacher { get; set; }
 }
