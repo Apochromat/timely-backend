@@ -59,6 +59,7 @@ builder.Services.AddSingleton<IAuthorizationMiddlewareResultHandler, LogoutCheck
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IEmailSender, EmailSender>();
 builder.Services.AddScoped<IAdminService, AdminService>();
+builder.Services.AddScoped<IAdminPanelService, AdminPanelService>();
 builder.Services.AddScoped<IScheduleService, ScheduleService>();
 
 // Connect distributed cache

@@ -10,4 +10,5 @@ public class TokenResponse {
     [DisplayName("isEmailConfirmed")] public Boolean IsEmailConfirmed { get; set; }
     [DisplayName("group")] public GroupDTO? Group { get; set; }
     [DisplayName("teacher")] public TeacherDTO? Teacher { get; set; }
+    [DisplayName("avatarLink")] public String? AvatarLink { get; set; }
 }

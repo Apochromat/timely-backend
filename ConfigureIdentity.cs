@@ -25,6 +25,18 @@ public static class ConfigureIdentity {
             adminRole = await roleManager.FindByNameAsync(ApplicationRoleNames.Administrator);
         }
 
+        // Try to create Composer Role
+        var composerRole = await roleManager.FindByNameAsync(ApplicationRoleNames.Composer);
+        if (composerRole == null) {
+            var roleResult = await roleManager.CreateAsync(new Role {
+                Name = ApplicationRoleNames.Composer,
+                Type = RoleType.Composer
+            });
+            if (!roleResult.Succeeded) {
+                throw new InvalidOperationException($"Unable to create {ApplicationRoleNames.Composer} role.");
+            }
+        }
+        
         // Try to create Teacher Role
         var teacherRole = await roleManager.FindByNameAsync(ApplicationRoleNames.Teacher);
         if (teacherRole == null) {
@@ -37,7 +49,7 @@ public static class ConfigureIdentity {
             }
         }
 
-        // Try to create Administrator Role
+        // Try to create Student Role
         var studentRole = await roleManager.FindByNameAsync(ApplicationRoleNames.Student);
         if (studentRole == null) {
             var roleResult = await roleManager.CreateAsync(new Role {

@@ -54,6 +54,7 @@ namespace timely_backend.Services {
                 throw new ArgumentException("User with this email already exists");
 
             User user = ModelConverter.ToUser(userRegisterModel);
+            user.AvatarLink = _configuration.GetSection("DefaultUsersConfig")["AvatarLink"];
 
             var result = await _userManager.CreateAsync(user, userRegisterModel.Password);
             if (result.Succeeded) {
@@ -181,6 +182,7 @@ namespace timely_backend.Services {
                 IsEmailConfirmed = await _userManager.IsEmailConfirmedAsync(user),
                 Teacher = user.Teacher == null ? null : ModelConverter.ToTeacherDTO(user.Teacher),
                 Group = user.Group == null ? null : ModelConverter.ToGroupDTO(user.Group),
+                AvatarLink = user.AvatarLink
             };
         }
 
@@ -257,12 +259,15 @@ namespace timely_backend.Services {
         public async Task<Response> SetGroup(string email, Guid groupId) {
             var user = await _userManager.FindByEmailAsync(email);
             if (user == null) throw new KeyNotFoundException("User not found");
+            
+            var group = _context.Groups.Where(g => g.Id == groupId).FirstOrDefault();
+            if (group == null) throw new KeyNotFoundException("Group not found");
 
             user = _userManager.Users.Where(u => u.Email == email).Include(u => u.Roles).ThenInclude(r => r.Role)
                 .Include(u => u.Teacher).Include(u => u.Group)
                 .First();
 
-            user.Group = _context.Groups.Where(g => g.Id == groupId).FirstOrDefault();
+            user.Group = group;
             await _context.SaveChangesAsync();
 
             _logger.LogInformation("User`s group was set successfully");
@@ -292,6 +297,46 @@ namespace timely_backend.Services {
             return new Response {
                 Status = "Ok",
                 Message = "Group successfully removed"
+            };
+        }
+        
+        /// <summary>
+        /// Set user`s avatar
+        /// </summary>
+        public async Task<Response> SetAvatar(string email, AvatarLinkDTO model) {
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null) throw new KeyNotFoundException("User not found");
+            
+            user = _userManager.Users.Where(u => u.Email == email).First();
+
+            user.AvatarLink = model.AvatarLink;
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("User`s avatar was set successfully");
+
+            return new Response {
+                Status = "Ok",
+                Message = "Avatar was successfully set"
+            };
+        }
+
+        /// <summary>
+        /// Remove user`s avatar
+        /// </summary>
+        public async Task<Response> RemoveAvatar(string email) {
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null) throw new KeyNotFoundException("User not found");
+
+            user = _userManager.Users.First();
+
+            user.AvatarLink = _configuration.GetSection("DefaultUsersConfig")["AvatarLink"];
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("User`s avatar was defaulted successfully");
+
+            return new Response {
+                Status = "Ok",
+                Message = "Avatar was successfully defaulted"
             };
         }
 
