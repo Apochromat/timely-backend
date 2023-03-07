@@ -257,12 +257,15 @@ namespace timely_backend.Services {
         public async Task<Response> SetGroup(string email, Guid groupId) {
             var user = await _userManager.FindByEmailAsync(email);
             if (user == null) throw new KeyNotFoundException("User not found");
+            
+            var group = _context.Groups.Where(g => g.Id == groupId).FirstOrDefault();
+            if (group == null) throw new KeyNotFoundException("Group not found");
 
             user = _userManager.Users.Where(u => u.Email == email).Include(u => u.Roles).ThenInclude(r => r.Role)
                 .Include(u => u.Teacher).Include(u => u.Group)
                 .First();
 
-            user.Group = _context.Groups.Where(g => g.Id == groupId).FirstOrDefault();
+            user.Group = group;
             await _context.SaveChangesAsync();
 
             _logger.LogInformation("User`s group was set successfully");
