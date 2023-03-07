@@ -39,7 +39,8 @@ namespace timely_backend {
                 Roles = user.Roles.Select(r => r.Role).Select(role => role.Name.ToString()).ToList(),
                 Teacher = user.Teacher == null ? null : ToTeacherDTO(user.Teacher),
                 Group = user.Group == null ? null : ToGroupDTO(user.Group),
-                IsEmailConfirmed = user.EmailConfirmed
+                IsEmailConfirmed = user.EmailConfirmed,
+                AvatarLink = user.AvatarLink
             };
             return temp;
         }

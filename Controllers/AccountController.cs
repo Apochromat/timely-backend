@@ -58,7 +58,7 @@ namespace timely_backend.Controllers {
                 return Problem(statusCode: 500, title: "Something went wrong");
             }
         }
-        
+
         /// <summary>
         /// Send Email confirmation letter
         /// </summary>
@@ -89,7 +89,7 @@ namespace timely_backend.Controllers {
                 return Problem(statusCode: 500, title: "Something went wrong");
             }
         }
-        
+
         /// <summary>
         /// Confirm user`s Email.
         /// </summary>
@@ -214,7 +214,7 @@ namespace timely_backend.Controllers {
                 return Problem(statusCode: 500, title: "Something went wrong");
             }
         }
-        
+
         /// <summary>
         /// Change user profile password.
         /// </summary>
@@ -240,7 +240,7 @@ namespace timely_backend.Controllers {
                 return Problem(statusCode: 500, title: "Something went wrong");
             }
         }
-        
+
         /// <summary>
         /// Set user`s group.
         /// </summary>
@@ -272,7 +272,7 @@ namespace timely_backend.Controllers {
                 return Problem(statusCode: 500, title: "Something went wrong");
             }
         }
-        
+
         /// <summary>
         /// Remove user`s group.
         /// </summary>
@@ -299,6 +299,54 @@ namespace timely_backend.Controllers {
                 return Problem(statusCode: 500, title: "Something went wrong");
             }
         }
-        
+
+        /// <summary>
+        /// Set user`s avatar.
+        /// </summary>
+        [HttpPut]
+        [Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Student)]
+        [Route("avatar/set")]
+        public async Task<ActionResult<Response>> SetAvatar([FromBody] AvatarLinkDTO model) {
+            try {
+                return await _account.SetAvatar(User.Identity.Name, model);
+            }
+            catch (InvalidOperationException e) {
+                _logger.LogError(e,
+                    $"Message: {e.Message} TraceId: {Activity.Current?.Id ?? HttpContext?.TraceIdentifier}");
+                return Problem(statusCode: 400, title: e.Message);
+            }
+            catch (KeyNotFoundException e) {
+                _logger.LogError(e,
+                    $"Message: {e.Message} TraceId: {Activity.Current?.Id ?? HttpContext?.TraceIdentifier}");
+                return Problem(statusCode: 404, title: e.Message);
+            }
+            catch (Exception e) {
+                _logger.LogError(e,
+                    $"Message: {e.Message} TraceId: {Activity.Current?.Id ?? HttpContext?.TraceIdentifier}");
+                return Problem(statusCode: 500, title: "Something went wrong");
+            }
+        }
+
+        /// <summary>
+        /// Remove user`s avatar.
+        /// </summary>
+        [HttpDelete]
+        [Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Student)]
+        [Route("avatar/remove")]
+        public async Task<ActionResult<Response>> RemoveAvatar() {
+            try {
+                return await _account.RemoveAvatar(User.Identity.Name);
+            }
+            catch (InvalidOperationException e) {
+                _logger.LogError(e,
+                    $"Message: {e.Message} TraceId: {Activity.Current?.Id ?? HttpContext?.TraceIdentifier}");
+                return Problem(statusCode: 400, title: e.Message);
+            }
+            catch (Exception e) {
+                _logger.LogError(e,
+                    $"Message: {e.Message} TraceId: {Activity.Current?.Id ?? HttpContext?.TraceIdentifier}");
+                return Problem(statusCode: 500, title: "Something went wrong");
+            }
+        }
     }
 }

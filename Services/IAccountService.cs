@@ -15,5 +15,7 @@ namespace timely_backend.Services {
         Task<Response> EditPassword(string email, UserPasswordEdit userPasswordEdit);
         Task<Response> SetGroup(string email, Guid groupId);
         Task<Response> RemoveGroup(string email);
+        Task<Response> SetAvatar(string email, AvatarLinkDTO avatarLink);
+        Task<Response> RemoveAvatar(string email);
     }
 }
