@@ -165,6 +165,8 @@ namespace timely_backend.Services
         {
 
             IList<LessonDTO> Lessons = null;
+            
+
            if (duplicateDTO.SchedulleType == TypeSchedulleEnum.Teacher)
             {
                 Lessons = await _scheduleService.GetLessonsProfessor(duplicateDTO.DateToCopy, duplicateDTO.Id);
@@ -179,33 +181,72 @@ namespace timely_backend.Services
             }
             if (Lessons == null) throw new InvalidOperationException("На это неделе нет пар для дублирования");
 
-            // bool isLesson(Lesson, dateToCopy)
+            foreach (var l in Lessons) l.ChainId = Guid.NewGuid();
+            IList<Lesson> LessonDb = new List<Lesson>();
 
+            foreach (var l in Lessons)
+            {
+                var lesson = l;
+                
+                for (int i = 0; i < duplicateDTO.AmountOfWeeks; i++)
+                {
+                    lesson.Date.AddDays(7);
+                    if (IsLesssonIntersect(l))
+                    {
+                        throw new ArgumentException("lesson with " + l.Group + " " + l.Name + " " + l.Teacher + " " + l.Classroom + " " + l.Date + " intersect someting"); ;
+                    }
+
+                    LessonDb.Add(ModelConverter.ToLesson(lesson));
+                }
+            }
+            //await _context.Lessons.AddRangeAsync(LessonDb);
+            foreach (var l in LessonDb) await _context.AddAsync(l);
+            await _context.SaveChangesAsync();
         }
-        public async Task <bool> IsLesssonIntersect(LessonDTO lesson, DateTime Date)
+        public bool IsLesssonIntersect(LessonDTO lesson)
         {
+            var check = false;
+            var teacher =  _context.Teachers.Find(lesson.Teacher.Id);
+            if (teacher == null) throw new KeyNotFoundException("this teacher with this id does not exist");
 
+            var classroom =  _context.Classrooms.Find(lesson.Classroom.Id);
+            if (classroom == null) throw new KeyNotFoundException("this classroom with this id does not exist");
 
-            /*var sameLesson = await _context.Lessons.FirstOrDefaultAsync(x => x.Teacher == teacher && x.TimeInterval == timeInterval && x.Date.Date == lesson.Date.Date);
-            if (sameLesson != null && sameLesson.Id != id)
+            var gNames = lesson.Group.Select(g => g.Name);
+            var groups = _context.Groups.Select(x=>x).Where(e => gNames.Contains(e.Name)).ToList();
+
+            var LessonName =  _context.LessonNames.Find(lesson.Name.Id);
+            if (LessonName == null) throw new KeyNotFoundException("lessonName with this id does not exist");
+
+            var lessonTag =  _context.LessonTags.Find(lesson.Tag.Id);
+            if (lessonTag == null) throw new KeyNotFoundException("this lessonTag does not exist");
+
+            var timeInterval =  _context.TimeIntervals.Find(lesson.TimeInterval.Id);
+            if (timeInterval == null) throw new KeyNotFoundException("this timeInterval does not exist");
+
+            var Lesson =  _context.Lessons.Find(lesson.Id);
+            if (Lesson == null) throw new KeyNotFoundException("Lesson with this id does not exist");
+            
+
+            var sameLesson =  _context.Lessons.FirstOrDefault(x => x.Teacher == teacher && x.TimeInterval == timeInterval && x.Date.Date == lesson.Date.Date);
+            if (sameLesson != null && sameLesson.Id != lesson.Id)
             {
-                throw new ArgumentException("this lesson is already exist with " + teacher.Name);
+                check = true;
             }
-            sameLesson = await _context.Lessons.FirstOrDefaultAsync(x => x.Classroom == classroom && x.TimeInterval == timeInterval && x.Date.Date == lesson.Date.Date);
-            if (sameLesson != null && sameLesson.Classroom.Name.ToLower() != "онлайн" && sameLesson.Id != id)
+            sameLesson =  _context.Lessons.FirstOrDefault(x => x.Classroom == classroom && x.TimeInterval == timeInterval && x.Date.Date == lesson.Date.Date);
+            if (sameLesson != null && sameLesson.Classroom.Name.ToLower() != "онлайн" && sameLesson.Id != lesson.Id)
             {
-                throw new ArgumentException("this lesson is already exist with " + classroom.Name);
+                check = true;
             }
-
-
             foreach (var g in groups)
             {
                 if (_context.Lessons.Include(x => x.Group).Where(l => l.Group.Contains(g) && l.TimeInterval == timeInterval && l.Date.Date == lesson.Date.Date).ToList().Count > 0)
                 {
-                    if (!Lesson.Group.Contains(g)) throw new ArgumentException("this lesson is already exist " + g.Name);
+                    if (!Lesson.Group.Contains(g)) check = true; break;
                 }
-            }*/
-            return false;
+            }
+
+            return check;
         }
         //domain
         public async Task CreateDomain(DomainDTO domain)
