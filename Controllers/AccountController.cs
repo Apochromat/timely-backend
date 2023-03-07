@@ -304,7 +304,7 @@ namespace timely_backend.Controllers {
         /// Set user`s avatar.
         /// </summary>
         [HttpPut]
-        [Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Student)]
+        [Authorize(AuthenticationSchemes = "Bearer")]
         [Route("avatar/set")]
         public async Task<ActionResult<Response>> SetAvatar([FromBody] AvatarLinkDTO model) {
             try {
@@ -331,7 +331,7 @@ namespace timely_backend.Controllers {
         /// Remove user`s avatar.
         /// </summary>
         [HttpDelete]
-        [Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Student)]
+        [Authorize(AuthenticationSchemes = "Bearer")]
         [Route("avatar/remove")]
         public async Task<ActionResult<Response>> RemoveAvatar() {
             try {
