@@ -1,0 +1,29 @@
+name: Deploy to Server
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: timely
+    
+    steps:
+    - name: Checkout source code
+      uses: actions/checkout@v2
+      
+    - name: Stop service
+      run: sudo systemctl stop kestrel-timely-backend.service
+      
+    - name: Set owner
+      run: chown -R www-data:www-data /var/www/timely-backend 
+    
+    - name: Build project
+      run: dotnet publish -c Debug -o /var/www/timely-backend
+      
+    - name: Set owner
+      run: chown -R www-data:www-data /var/www/timely-backend 
+      
+    - name: Restart service
+      run: sudo systemctl restart kestrel-timely-backend.service
