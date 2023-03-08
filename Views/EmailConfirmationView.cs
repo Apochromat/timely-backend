@@ -64,7 +64,7 @@ public static class EmailConfirmationView {
                     <p class="secondary-text">Если вы не регистрировались в нашем сервисе, то пропустите данное сообщение</p>
                 </div>
                 <div class="button-bg">
-                        <a href="http://{{url}}?token={{token}}">
+                        <a href="https://{{url}}?token={{token}}">
                             <button>
                                 Подтвердить
                             </button>
