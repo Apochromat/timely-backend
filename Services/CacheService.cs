@@ -12,7 +12,6 @@ namespace timely_backend.Services {
             _cache = cache;
             _configuration = configuration;
             options = new DistributedCacheEntryOptions()
-                .SetAbsoluteExpiration(DateTime.Now.AddHours(_configuration.GetSection("JwtConfiguration").GetValue<int>("LogoutAbsoluteExpirationHours")))
                 .SetSlidingExpiration(TimeSpan.FromHours(_configuration.GetSection("JwtConfiguration").GetValue<int>("LogoutSlidingExpirationHours")));
         }
         
