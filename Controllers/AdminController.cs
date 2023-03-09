@@ -684,5 +684,41 @@ namespace timely_backend.Controllers {
                 return Problem(statusCode: 500, title: "Something went wrong");
             }
         }
+        [AllowAnonymous]
+        [HttpPost]
+        [Route("lesson/duplicate")]
+        public async Task<IActionResult> DuplicateLesson([FromBody] DuplicateDTO duplicateDTO)
+        {
+            try
+            {
+                await _adminService.DuplicateLesson(duplicateDTO);
+                return Ok();
+            }
+            catch (InvalidOperationException e)
+            {
+                _logger.LogError(e,
+                    $"Message: {e.Message} TraceId: {Activity.Current?.Id ?? HttpContext.TraceIdentifier}");
+                return Problem(statusCode: 404, title: e.Message);
+            }
+            catch (ArgumentNullException e)
+            {
+                _logger.LogError(e,
+                    $"Message: {e.Message} TraceId: {Activity.Current?.Id ?? HttpContext.TraceIdentifier}");
+                return Problem(statusCode: 400, title: e.Message);
+            }
+            catch (ArgumentException e)
+            {
+                _logger.LogError(e,
+                    $"Message: {e.Message} TraceId: {Activity.Current?.Id ?? HttpContext.TraceIdentifier}");
+                return Problem(statusCode: 409, title: e.Message);
+            }
+
+            catch (Exception e)
+            {
+                _logger.LogError(e,
+                    $"Message: {e.Message} TraceId: {Activity.Current?.Id ?? HttpContext.TraceIdentifier}");
+                return Problem(statusCode: 500, title: "Something went wrong");
+            }
+        }
     }
 }
