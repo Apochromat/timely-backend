@@ -8,7 +8,7 @@ namespace timely_backend.Models
         public Guid Id { get; set; } = Guid.NewGuid();
         public LessonName Name { get; set; }
         public LessonTag Tag { get; set; }
-        public IList<Group> Group { get; set; }
+        public IList<Group> Group { get; set; } = new List<Group>();
         public Teacher Teacher { get; set; }
         public TimeInterval TimeInterval { get; set; }
         public Classroom Classroom { get; set; }

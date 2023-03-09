@@ -1,4 +1,5 @@
-﻿using timely_backend.Models.DTO;
+﻿using timely_backend.Models;
+using timely_backend.Models.DTO;
 
 namespace timely_backend.Services
 
@@ -16,6 +17,8 @@ namespace timely_backend.Services
         Task <IList<LessonDTO>> GetLessonsClassroom(DateTime date, Guid id);
         Task<IList<LessonDTO>> GetLessonsProfessor(DateTime date, Guid id);
         Task<IList<LessonDTO>> GetLessonsGroup(DateTime date, Guid id);
-
+        Task<IList<Lesson>> GetLessonsProfessorDb(DateTime date, Guid id);
+        Task<IList<Lesson>> GetLessonsClassroomDb(DateTime date, Guid id);
+        Task<IList<Lesson>> GetLessonsGroupDb(DateTime date, Guid id);
     }
 }

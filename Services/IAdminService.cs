@@ -41,7 +41,7 @@ namespace timely_backend.Services
         Task EditLesson (LessonFromId lesson , Guid id);
         Task DeleteLesson(Guid id);
         Task DuplicateLesson(DuplicateDTO duplicateDTO);
-        bool IsLesssonIntersect(LessonDTO Lesson);
+        bool IsLesssonIntersect(Lesson Lesson);
     }
 
     
