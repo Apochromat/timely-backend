@@ -105,16 +105,16 @@ namespace timely_backend.Services {
             var timeInterval = await _context.TimeIntervals.FindAsync(lesson.TimeIntervalId);
             if (timeInterval == null) throw new KeyNotFoundException("this timeInterval does not exist");
 
-            var Lesson = await _context.Lessons.FindAsync(id);
+            var Lesson = await _context.Lessons.Include(x => x.Group).Include(x => x.Teacher).Include(x => x.Tag).Include(x => x.Name).Include(x => x.TimeInterval).Include(x => x.Classroom).FirstOrDefaultAsync(x=>x.Id == id);
 
             if (Lesson == null) throw new KeyNotFoundException("Lesson with this id does not exist");
             if (Lesson.IsReadOnly) throw new InvalidOperationException("Lesson is read-only");
 
-            var sameLesson = await _context.Lessons.FirstOrDefaultAsync(x => x.Teacher == teacher && x.TimeInterval == timeInterval && x.Date.Date == lesson.Date.Date);
+            var sameLesson = await _context.Lessons.Include(x => x.Group).Include(x => x.Teacher).Include(x => x.Tag).Include(x => x.Name).Include(x => x.TimeInterval).Include(x => x.Classroom).FirstOrDefaultAsync(x => x.Teacher == teacher && x.TimeInterval == timeInterval && x.Date.Date == lesson.Date.Date);
             if (sameLesson != null && sameLesson.Id != id) {
                 throw new ArgumentException("this lesson is already exist with " + teacher.Name);
             }
-            sameLesson = await _context.Lessons.FirstOrDefaultAsync(x => x.Classroom == classroom && x.TimeInterval == timeInterval && x.Date.Date == lesson.Date.Date);
+            sameLesson = await _context.Lessons.Include(x => x.Group).Include(x => x.Teacher).Include(x => x.Tag).Include(x => x.Name).Include(x => x.TimeInterval).Include(x => x.Classroom).FirstOrDefaultAsync(x => x.Classroom == classroom && x.TimeInterval == timeInterval && x.Date.Date == lesson.Date.Date);
             if (sameLesson != null && sameLesson.Classroom.Name.ToLower() != "онлайн" && sameLesson.Id != id) {
                 throw new ArgumentException("this lesson is already exist with " + classroom.Name);
             }
