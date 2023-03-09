@@ -121,8 +121,8 @@ namespace timely_backend.Services {
 
 
             foreach (var g in groups) {
-                if (_context.Lessons.Include(x => x.Group).Where(l => l.Group.Contains(g) && l.TimeInterval == timeInterval && l.Date.Date == lesson.Date.Date).ToList().Count > 0) {
-                    if (!Lesson.Group.Contains(g)) throw new ArgumentException("this lesson is already exist " + g.Name);
+                if (_context.Lessons.Include(x => x.TimeInterval).Include(x => x.Group).Where(l => l.Group.Contains(g) && l.Id != Lesson.Id && l.TimeInterval == timeInterval && l.Date.Date == lesson.Date.Date).ToList().Count > 0) {
+                     throw new ArgumentException("this lesson is already exist " + g.Name);
                 }
             }
 
