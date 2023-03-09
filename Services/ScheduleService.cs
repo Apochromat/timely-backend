@@ -25,7 +25,7 @@ namespace timely_backend.Services
                 {
                     Name = x.Name,
                     Id = x.Id,
-                }).ToListAsync();
+                }).OrderBy(x => x.Name).ToListAsync();
             }
             else
             {
@@ -33,7 +33,7 @@ namespace timely_backend.Services
                 {
                     Id = x.Id,
                     Name = x.Name
-                }).ToListAsync();
+                }).OrderBy(x => x.Name).ToListAsync();
             } 
         }
         public async Task<IList<ClassroomDTO>> GetClassroom(string filter)
@@ -45,7 +45,7 @@ namespace timely_backend.Services
                 {
                     Name = x.Name,
                     Id = x.Id,
-                }).ToListAsync();
+                }).OrderBy(x => x.Name).ToListAsync();
             }
             else
             {
@@ -53,7 +53,7 @@ namespace timely_backend.Services
                 {
                     Id = x.Id,
                     Name = x.Name
-                }).ToListAsync();
+                }).OrderBy(x => x.Name).ToListAsync();
             }
         }
         public async Task<IList<GroupDTO>> GetGroup(string filter)
@@ -65,7 +65,7 @@ namespace timely_backend.Services
                 {
                     Name = x.Name,
                     Id = x.Id,
-                }).ToListAsync();
+                }).OrderBy(x => x.Name).ToListAsync();
             }
             else
             {
@@ -73,7 +73,7 @@ namespace timely_backend.Services
                 {
                     Id = x.Id,
                     Name = x.Name
-                }).ToListAsync();
+                }).OrderBy(x => x.Name).ToListAsync();
             }
         }
         public async Task<IList<DomainDTO>> GetDomains(string filter)
@@ -85,7 +85,7 @@ namespace timely_backend.Services
                 {
                     Url = x.Url,
                     Id = x.Id,
-                }).ToListAsync();
+                }).OrderBy(x => x.Url).ToListAsync();
             }
             else
             {
@@ -93,7 +93,7 @@ namespace timely_backend.Services
                 {
                     Id = x.Id,
                     Url = x.Url
-                }).ToListAsync();
+                }).OrderBy(x => x.Url).ToListAsync();
             }
         }
         public async Task<IList<LessonTagDTO>> GetLessonTag(string filter)
@@ -105,7 +105,7 @@ namespace timely_backend.Services
                 {
                     Name = x.Name,
                     Id = x.Id,
-                }).ToListAsync();
+                }).OrderBy(x => x.Name).ToListAsync();
             }
             else
             {
@@ -113,7 +113,7 @@ namespace timely_backend.Services
                 {
                     Id = x.Id,
                     Name = x.Name
-                }).ToListAsync();
+                }).OrderBy(x => x.Name).ToListAsync();
             }
         }
         public async Task<IList<LessonNameDTO>> GetLessonName(string filter)
@@ -125,7 +125,7 @@ namespace timely_backend.Services
                 {
                     Name = x.Name,
                     Id = x.Id,
-                }).ToListAsync();
+                }).OrderBy(x => x.Name).ToListAsync();
             }
             else
             {
@@ -133,7 +133,7 @@ namespace timely_backend.Services
                 {
                     Id = x.Id,
                     Name = x.Name
-                }).ToListAsync();
+                }).OrderBy(x => x.Name).ToListAsync();
             }
         }
         public async Task<IList<TimeIntervalDTO>> GetTimeInterval()
@@ -181,7 +181,7 @@ namespace timely_backend.Services
             var error = await _context.Classrooms.FindAsync(id);
             if (error == null) throw new ArgumentException("classroom with this id does not exist");
 
-            var result = await _context.Lessons.Where(x => x.Date <= endOfWeek && x.Date >= startOfWeek && x.Classroom.Id == id).Select(x => new LessonDTO
+            var result = await _context.Lessons.Include(x => x.Group).Where(x => x.Date <= endOfWeek && x.Date >= startOfWeek && x.Classroom.Id == id).Select(x => new LessonDTO
             {
                 Id = x.Id,
                 Name = ModelConverter.ToLessonNameDTO(x.Name),
@@ -204,10 +204,10 @@ namespace timely_backend.Services
             DateTime startOfWeek = date.AddDays(-1 * (int)day);
             DateTime endOfWeek = startOfWeek.AddDays(6);
 
-            var error = await _context.Teachers.FindAsync(id);
+            var error = await _context.Teachers.FirstOrDefaultAsync(x=>x.Id == id);
             if (error == null) throw new ArgumentException("teacher with this id does not exist");
 
-            var result = await _context.Lessons.Where(x => x.Date <= endOfWeek && x.Date >= startOfWeek && x.Teacher.Id == id).Select(x => new LessonDTO
+            var result = await _context.Lessons.Include(x=>x.Group).Where(x => x.Date <= endOfWeek && x.Date >= startOfWeek && x.Teacher.Id == id).Select(x => new LessonDTO
             {
                 Id = x.Id,
                 Name = ModelConverter.ToLessonNameDTO(x.Name),
@@ -221,6 +221,43 @@ namespace timely_backend.Services
                 IsReadOnly = x.IsReadOnly
 
             }).ToListAsync();
+            return result;
+        }
+        public async Task<IList<Lesson>> GetLessonsProfessorDb(DateTime date, Guid id)
+        {
+            DayOfWeek day = date.DayOfWeek;
+
+            DateTime startOfWeek = date.AddDays(-1 * (int)day);
+            DateTime endOfWeek = startOfWeek.AddDays(6);
+
+            var error = await _context.Teachers.FirstOrDefaultAsync(x => x.Id == id);
+            if (error == null) throw new ArgumentException("teacher with this id does not exist");
+
+            var result = await _context.Lessons.Include(x => x.Group).Include(x => x.Teacher).Include(x => x.Tag).Include(x => x.Name).Include(x => x.TimeInterval).Include(x => x.Classroom).Where(x => x.Date <= endOfWeek && x.Date >= startOfWeek && x.Teacher.Id == id).Select(x => x).ToListAsync();
+            return result;
+        }
+        public async Task<IList<Lesson>> GetLessonsClassroomDb(DateTime date, Guid id) {
+            DayOfWeek day = date.DayOfWeek;
+
+            DateTime startOfWeek = date.AddDays(-1 * (int)day);
+            DateTime endOfWeek = startOfWeek.AddDays(6);
+
+            var error = await _context.Classrooms.FirstOrDefaultAsync(x => x.Id == id);
+            if (error == null) throw new ArgumentException("classroom with this id does not exist");
+
+            var result = await _context.Lessons.Include(x => x.Group).Include(x => x.Teacher).Include(x => x.Tag).Include(x => x.Name).Include(x => x.TimeInterval).Include(x => x.Classroom).Where(x => x.Date <= endOfWeek && x.Date >= startOfWeek && x.Classroom.Id == id).Select(x => x).ToListAsync();
+            return result;
+        }
+        public async Task<IList<Lesson>> GetLessonsGroupDb(DateTime date, Guid id) {
+            DayOfWeek day = date.DayOfWeek;
+
+            DateTime startOfWeek = date.AddDays(-1 * (int)day);
+            DateTime endOfWeek = startOfWeek.AddDays(6);
+
+            var group = await _context.Groups.FindAsync(id);
+            if (group == null) throw new ArgumentException("group with this id does not exist");
+
+            var result = await _context.Lessons.Include(x => x.Teacher).Include(x => x.Tag).Include(x => x.Name).Include(x => x.TimeInterval).Include(x => x.Classroom).Where(x => x.Date <= endOfWeek && x.Date >= startOfWeek).Include(o => o.Group).Where(o => o.Group.Contains(group)).Select(x => x).ToListAsync();
             return result;
         }
     }

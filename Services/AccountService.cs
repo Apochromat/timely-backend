@@ -327,7 +327,7 @@ namespace timely_backend.Services {
             var user = await _userManager.FindByEmailAsync(email);
             if (user == null) throw new KeyNotFoundException("User not found");
 
-            user = _userManager.Users.First();
+            user = _userManager.Users.Where(u => u.Email == email).First();
 
             user.AvatarLink = _configuration.GetSection("DefaultUsersConfig")["AvatarLink"];
             await _context.SaveChangesAsync();

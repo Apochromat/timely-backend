@@ -9,6 +9,7 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid, Identity
     private readonly IConfiguration _configuration;
     public ApplicationDbContext(IConfiguration configuration) : base() {
         _configuration = configuration;
+
     }
 
     public DbSet<User> Users { get; set; }
@@ -26,7 +27,7 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid, Identity
 
 
 
-
+    
 
     protected override void OnModelCreating(ModelBuilder modelBuilder) {
         base.OnModelCreating(modelBuilder);
@@ -53,5 +54,6 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, Guid, Identity
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) {
         optionsBuilder.UseMySql(_configuration.GetConnectionString("MySQLDatabase"), new MySqlServerVersion(new Version(8, 0, 31)));
+        optionsBuilder.EnableSensitiveDataLogging();
     }
 }
