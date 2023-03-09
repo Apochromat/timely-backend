@@ -143,7 +143,7 @@ namespace timely_backend.Services
                 Id = x.Id,
                 StartTime = x.StartTime,
                 EndTime= x.EndTime 
-            }).ToListAsync();
+            }).OrderBy(x=>x.StartTime).ToListAsync();
             return TimeIntervals;
         }
         public async Task<IList<LessonDTO>> GetLessonsGroup(DateTime date, Guid id)
