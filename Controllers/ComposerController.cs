@@ -605,7 +605,6 @@ namespace timely_backend.Controllers {
         }
 
         [HttpPut]
-        [AllowAnonymous]
         [Route("lesson/cascadeEdit/{id}")]
         public async Task<IActionResult> EditLCascadeLesson([FromBody] LessonFromId lesson, Guid id) {
             try {
@@ -664,6 +663,30 @@ namespace timely_backend.Controllers {
             }
         }
 
+        [HttpDelete]
+        [Route("lesson/cascadeDelete/{id}")]
+        public async Task<IActionResult> DeleteCascadeLesson(Guid id) {
+            try {
+                await _adminService.DeleteChainLesson(id);
+                return Ok();
+            }
+
+            catch (KeyNotFoundException e) {
+                _logger.LogError(e,
+                    $"Message: {e.Message} TraceId: {Activity.Current?.Id ?? HttpContext.TraceIdentifier}");
+                return Problem(statusCode: 400, title: e.Message);
+            }
+            catch (InvalidOperationException e) {
+                _logger.LogError(e,
+                    $"Message: {e.Message} TraceId: {Activity.Current?.Id ?? HttpContext.TraceIdentifier}");
+                return Problem(statusCode: 405, title: e.Message);
+            }
+            catch (Exception e) {
+                _logger.LogError(e,
+                    $"Message: {e.Message} TraceId: {Activity.Current?.Id ?? HttpContext.TraceIdentifier}");
+                return Problem(statusCode: 500, title: "Something went wrong");
+            }
+        }
 
         [HttpPost]
         [Route("lesson/duplicate")]

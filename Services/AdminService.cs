@@ -207,6 +207,20 @@ namespace timely_backend.Services {
             _context.Lessons.Remove(lesson);
             await _context.SaveChangesAsync();
         }
+
+        public async Task DeleteChainLesson(Guid id) {
+            var lesson = await _context.Lessons.FindAsync(id);
+            if (lesson == null) {
+                throw new KeyNotFoundException("this teacher does not exist");
+            }
+            if (lesson.IsReadOnly) throw new InvalidOperationException("Lesson is read-only");
+
+            var chainLessons = await _context.Lessons.Include(x => x.Group).Include(x => x.Teacher).Include(x => x.Tag).Include(x => x.Name).Include(x => x.TimeInterval).Include(x => x.Classroom).Where(x => x.ChainId == lesson.ChainId && x.Date.Date >= lesson.Date.Date).ToListAsync();
+
+            _context.Lessons.RemoveRange(chainLessons);
+            await _context.SaveChangesAsync();
+        }
+
         public async Task DuplicateLesson(DuplicateDTO duplicateDTO) {
 
             IList<Lesson> Lessons = null;
