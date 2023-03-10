@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
 using Org.BouncyCastle.Crypto;
 using Serilog;
 using ServiceStack;
@@ -135,6 +136,64 @@ namespace timely_backend.Services {
             Lesson.Classroom = classroom;
             Lesson.Date = lesson.Date;
             Lesson.ChainId = lesson.ChainId;
+
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task EditChainLesson(LessonFromId lesson, Guid id) {
+            var teacher = await _context.Teachers.FindAsync(lesson.TeacherId);
+            if (teacher == null) throw new KeyNotFoundException("this teacher with this id does not exist");
+
+            var classroom = await _context.Classrooms.FindAsync(lesson.ClassroomId);
+            if (classroom == null) throw new KeyNotFoundException("this classroom with this id does not exist");
+
+            var groups = _context.Groups.Where(e => lesson.GroupId.Contains(e.Id)).ToList();
+            /*var existGroup = _context.Groups.All(e => lesson.GroupId.Contains(e.Id));
+            if (existGroup == false) throw new KeyNotFoundException("group with this id does not exist");*/
+
+            var LessonName = await _context.LessonNames.FindAsync(lesson.NameId);
+            if (LessonName == null) throw new KeyNotFoundException("lessonName with this id does not exist");
+
+            var lessonTag = await _context.LessonTags.FindAsync(lesson.TagId);
+            if (lessonTag == null) throw new KeyNotFoundException("this lessonTag does not exist");
+
+            var timeInterval = await _context.TimeIntervals.FindAsync(lesson.TimeIntervalId);
+            if (timeInterval == null) throw new KeyNotFoundException("this timeInterval does not exist");
+
+            var Lesson = await _context.Lessons.Include(x => x.Group).Include(x => x.Teacher).Include(x => x.Tag).Include(x => x.Name).Include(x => x.TimeInterval).Include(x => x.Classroom).FirstOrDefaultAsync(x => x.Id == id);
+
+            if (Lesson == null) throw new KeyNotFoundException("Lesson with this id does not exist");
+            if (Lesson.IsReadOnly) throw new InvalidOperationException("Lesson is read-only");
+
+            var chainLessons = await _context.Lessons.Include(x => x.Group).Include(x => x.Teacher).Include(x => x.Tag).Include(x => x.Name).Include(x => x.TimeInterval).Include(x => x.Classroom).Where(x => x.ChainId == Lesson.ChainId && x.Date.Date >= Lesson.Date.Date).ToListAsync();
+
+            Lesson sameLesson = null;
+            foreach (var chain in chainLessons) {
+
+                chain.Name = LessonName;
+                chain.Tag = lessonTag;
+                chain.TimeInterval = timeInterval;
+                chain.Group = groups;
+                chain.Teacher = teacher;
+                chain.Classroom = classroom;
+                chain.Date = chain.Date.AddDays((lesson.Date.Date - Lesson.Date.Date).TotalDays);
+                chain.ChainId = lesson.ChainId;
+
+                sameLesson = await _context.Lessons.Include(x => x.Group).Include(x => x.Teacher).Include(x => x.Tag).Include(x => x.Name).Include(x => x.TimeInterval).Include(x => x.Classroom).FirstOrDefaultAsync(x => x.Teacher == teacher && x.TimeInterval == timeInterval && x.Date.Date == chain.Date.Date);
+                if (sameLesson != null && sameLesson.Id != chain.Id) {
+                    throw new ArgumentException("this lesson is already exist with " + teacher.Name);
+                }
+                sameLesson = await _context.Lessons.Include(x => x.Group).Include(x => x.Teacher).Include(x => x.Tag).Include(x => x.Name).Include(x => x.TimeInterval).Include(x => x.Classroom).FirstOrDefaultAsync(x => x.Classroom == classroom && x.TimeInterval == timeInterval && x.Date.Date == chain.Date.Date);
+                if (sameLesson != null && sameLesson.Classroom.Name.ToLower() != "онлайн" && sameLesson.Id != chain.Id) {
+                    throw new ArgumentException("this lesson is already exist with " + classroom.Name);
+                }
+                foreach (var g in groups) {
+                    if (_context.Lessons.Include(x => x.TimeInterval).Include(x => x.Group).Where(l => l.Group.Contains(g) && l.Id != chain.Id && l.TimeInterval == timeInterval && l.Date.Date == chain.Date.Date).ToList().Count > 0) {
+                        throw new ArgumentException("this lesson is already exist " + g.Name);
+                    }
+                }
+
+            }
 
             await _context.SaveChangesAsync();
         }
