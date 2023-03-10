@@ -211,19 +211,43 @@ namespace timely_backend.Services {
 
             var sameLesson = _context.Lessons.AsNoTracking().Include(x => x.Classroom).Include(x => x.TimeInterval).FirstOrDefault(x => x.Teacher == teacher && x.TimeInterval == timeInterval && x.Date.Date == lesson.Date.Date);
             if (sameLesson != null) {
-                check = true;
+                throw new ArgumentException("Дублирование невозможно из-за наложения на существующую пару: " + sameLesson.Name.Name + " " + sameLesson.Teacher.Name + " " + sameLesson.Classroom.Name + " " + sameLesson.Date.ToShortDateString() + " " + sameLesson.TimeInterval.StartTime);
+
             }
             sameLesson = _context.Lessons.AsNoTracking().Include(x => x.Classroom).Include(x => x.TimeInterval).FirstOrDefault(x => x.Classroom == classroom && x.TimeInterval == timeInterval && x.Date.Date == lesson.Date.Date);
             if (sameLesson != null) {
-                if (sameLesson.Classroom.Name.ToLower() != "онлайн") check = true;
+                if (sameLesson.Classroom.Name.ToLower() != "онлайн")
+                    throw new ArgumentException( "Дублирование невозможно из-за наложения на существующую пару: " + sameLesson.Name.Name + " " + sameLesson.Teacher.Name + " " + sameLesson.Classroom.Name + " " + sameLesson.Date.ToShortDateString() + " " +sameLesson.TimeInterval.StartTime);
             }
             foreach (var g in groups) {
                 if (_context.Lessons.Include(x => x.Group).Where(l => l.Group.Contains(g) && l.TimeInterval == timeInterval && l.Date.Date == lesson.Date.Date).AsNoTracking().ToList().Count > 0) {
-                    check = true; break;
+                    throw new ArgumentException("У группы " + g.Name + " уже существует пара на дату " + lesson.Date.ToShortDateString() + " "+ lesson.TimeInterval.StartTime);
+
                 }
             }
 
             return check;
+        }
+        public async Task DeleteLessonWeek(DuplicateDTO duplicateDTO) {
+            IList<Lesson> Lessons = null;
+            if (duplicateDTO.SchedulleType == TypeSchedulleEnum.Teacher) {
+                Lessons = await _scheduleService.GetLessonsProfessorDb(duplicateDTO.DateToCopy, duplicateDTO.Id, duplicateDTO.AmountOfWeeks);
+            }
+            else if (duplicateDTO.SchedulleType == TypeSchedulleEnum.Classroom) {
+
+                Lessons = await _scheduleService.GetLessonsClassroomDb(duplicateDTO.DateToCopy, duplicateDTO.Id, duplicateDTO.AmountOfWeeks);
+            }
+            else if (duplicateDTO.SchedulleType == TypeSchedulleEnum.Group) {
+                Lessons = await _scheduleService.GetLessonsGroupDb(duplicateDTO.DateToCopy, duplicateDTO.Id, duplicateDTO.AmountOfWeeks);
+            }
+            if (Lessons == null) throw new InvalidOperationException("На этой неделе нет пар для удаления");
+
+            var error = Lessons.FirstOrDefault(x => x.IsReadOnly);
+            if (error != null) {
+                throw new InvalidOperationException("Пару, c датой " +error.Date.ToShortDateString() + " невозможно отредактировать, т.к она уже прошла");
+            }
+            _context.Lessons.RemoveRange(Lessons);
+            await _context.SaveChangesAsync();
         }
         //domain
         public async Task CreateDomain(DomainDTO domain) {
