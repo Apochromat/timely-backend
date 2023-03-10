@@ -223,7 +223,7 @@ namespace timely_backend.Services
             }).ToListAsync();
             return result;
         }
-        public async Task<IList<Lesson>> GetLessonsProfessorDb(DateTime date, Guid id)
+        public async Task<IList<Lesson>> GetLessonsProfessorDb(DateTime date, Guid id, int numWeeks = 0)
         {
             DayOfWeek day = date.DayOfWeek;
 
@@ -236,7 +236,7 @@ namespace timely_backend.Services
             var result = await _context.Lessons.Include(x => x.Group).Include(x => x.Teacher).Include(x => x.Tag).Include(x => x.Name).Include(x => x.TimeInterval).Include(x => x.Classroom).Where(x => x.Date <= endOfWeek && x.Date >= startOfWeek && x.Teacher.Id == id).Select(x => x).ToListAsync();
             return result;
         }
-        public async Task<IList<Lesson>> GetLessonsClassroomDb(DateTime date, Guid id) {
+        public async Task<IList<Lesson>> GetLessonsClassroomDb(DateTime date, Guid id, int numWeeks = 0) {
             DayOfWeek day = date.DayOfWeek;
 
             DateTime startOfWeek = date.AddDays(-1 * (int)day);
@@ -248,11 +248,15 @@ namespace timely_backend.Services
             var result = await _context.Lessons.Include(x => x.Group).Include(x => x.Teacher).Include(x => x.Tag).Include(x => x.Name).Include(x => x.TimeInterval).Include(x => x.Classroom).Where(x => x.Date <= endOfWeek && x.Date >= startOfWeek && x.Classroom.Id == id).Select(x => x).ToListAsync();
             return result;
         }
-        public async Task<IList<Lesson>> GetLessonsGroupDb(DateTime date, Guid id) {
+        public async Task<IList<Lesson>> GetLessonsGroupDb(DateTime date, Guid id, int numWeeks = 0) {
             DayOfWeek day = date.DayOfWeek;
 
             DateTime startOfWeek = date.AddDays(-1 * (int)day);
-            DateTime endOfWeek = startOfWeek.AddDays(6);
+
+            DateTime endDate = startOfWeek.AddDays(numWeeks * 7);
+            DateTime endOfWeek = endDate.AddDays(6 - (int)endDate.DayOfWeek);
+
+         //   DateTime endOfWeek = startOfWeek.AddDays(6);
 
             var group = await _context.Groups.FindAsync(id);
             if (group == null) throw new ArgumentException("group with this id does not exist");
