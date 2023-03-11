@@ -407,7 +407,7 @@ namespace timely_backend.Services {
             }
             var sameClassroom = await _context.Classrooms.FirstOrDefaultAsync(x => x.Name == classroom.Name);
 
-            if (sameClassroom != null) {
+            if (sameClassroom != null && sameClassroom.IsDeleted == false) {
                 throw new ArgumentException("this classroom is already exist");
             }
             await _context.Classrooms.AddAsync(new Classroom {
@@ -421,7 +421,7 @@ namespace timely_backend.Services {
             }
             var sameClassroom = await _context.Classrooms.FirstOrDefaultAsync(x => x.Name == classroom.Name);
 
-            if (sameClassroom != null) {
+            if (sameClassroom != null && sameClassroom.IsDeleted == false) {
                 throw new ArgumentException("this classroom is already exist");
             }
             var Classroom = await _context.Classrooms.FindAsync(id);
@@ -444,7 +444,7 @@ namespace timely_backend.Services {
             }
             var sameGroup = await _context.Groups.FirstOrDefaultAsync(x => x.Name == group.Name);
 
-            if (sameGroup != null) {
+            if (sameGroup != null && sameGroup.IsDeleted == false) {
                 throw new ArgumentException("this group is already exist");
             }
             await _context.Groups.AddAsync(new Group {
@@ -458,7 +458,7 @@ namespace timely_backend.Services {
             }
             var sameGroup = await _context.Groups.FirstOrDefaultAsync(x => x.Name == group.Name);
 
-            if (sameGroup != null) {
+            if (sameGroup != null && sameGroup.IsDeleted == false) {
                 throw new ArgumentException("this group is already exist");
             }
             var Group = await _context.Groups.FindAsync(id);
@@ -481,7 +481,7 @@ namespace timely_backend.Services {
             }
             var sameLessonName = await _context.LessonNames.FirstOrDefaultAsync(x => x.Name == lessonName.Name);
 
-            if (sameLessonName != null) {
+            if (sameLessonName != null && sameLessonName.IsDeleted == false) {
                 throw new ArgumentException("this lessonName is already exist");
             }
             await _context.LessonNames.AddAsync(new LessonName {
@@ -493,9 +493,9 @@ namespace timely_backend.Services {
             if (lessonName.Name == null) {
                 throw new ArgumentNullException(nameof(lessonName));
             }
-            var sameLessonName = await _context.Groups.FirstOrDefaultAsync(x => x.Name == lessonName.Name);
+            var sameLessonName = await _context.LessonNames.FirstOrDefaultAsync(x => x.Name == lessonName.Name);
 
-            if (sameLessonName != null) {
+            if (sameLessonName != null && sameLessonName.IsDeleted == false) {
                 throw new ArgumentException("this lessonName is already exist");
             }
             var LessonName = await _context.LessonNames.FindAsync(id);
@@ -518,7 +518,7 @@ namespace timely_backend.Services {
             }
             var sameLessonTag = await _context.LessonTags.FirstOrDefaultAsync(x => x.Name == lessonTag.Name);
 
-            if (sameLessonTag != null) {
+            if (sameLessonTag != null && sameLessonTag.IsDeleted == false) {
                 throw new ArgumentException("this lessonTag is already exist");
             }
             await _context.LessonTags.AddAsync(new LessonTag {
@@ -532,7 +532,7 @@ namespace timely_backend.Services {
             }
             var sameLessonTag = await _context.LessonTags.FirstOrDefaultAsync(x => x.Name == lessonTag.Name);
 
-            if (sameLessonTag != null) {
+            if (sameLessonTag != null && sameLessonTag.IsDeleted == false) {
                 throw new ArgumentException("this lessonTag is already exist");
             }
             var LessonTag = await _context.LessonTags.FindAsync(id);
@@ -555,11 +555,11 @@ namespace timely_backend.Services {
             }
             var sameInterval = await _context.TimeIntervals.FirstOrDefaultAsync(x => x.StartTime == timeInterval.StartTime && x.EndTime == timeInterval.EndTime);
 
-            if (sameInterval != null) {
+            if (sameInterval != null && sameInterval.IsDeleted == false) {
                 throw new ArgumentException("this timeInterval is already exist");
             }
             var error = await _context.TimeIntervals.FirstOrDefaultAsync(x => x.StartTime <= timeInterval.EndTime && x.EndTime >= timeInterval.StartTime || x.StartTime <= timeInterval.StartTime && x.EndTime >= timeInterval.EndTime || x.StartTime >= timeInterval.StartTime && x.EndTime <= timeInterval.EndTime);
-            if (error != null) {
+            if (error != null && error.IsDeleted == false) {
                 throw new ArgumentException("this timeInterval intersects another one");
             }
             await _context.TimeIntervals.AddAsync(new TimeInterval {
@@ -575,12 +575,12 @@ namespace timely_backend.Services {
             }
             var sameInterval = await _context.TimeIntervals.FirstOrDefaultAsync(x => x.StartTime == timeInterval.StartTime && x.EndTime == timeInterval.EndTime);
 
-            if (sameInterval != null && sameInterval.Id != id) {
+            if (sameInterval != null && sameInterval.Id != id && sameInterval.IsDeleted == false) {
                 throw new ArgumentException("this timeInterval is already exist");
             }
             var error = await _context.TimeIntervals.FirstOrDefaultAsync(x => x.StartTime <= timeInterval.EndTime && x.EndTime >= timeInterval.StartTime || x.StartTime <= timeInterval.StartTime && x.EndTime >= timeInterval.EndTime || x.StartTime >= timeInterval.StartTime && x.EndTime <= timeInterval.EndTime);
 
-            if (error != null && error.Id != id) {
+            if (error != null && error.Id != id && error.IsDeleted == false) {
                 throw new ArgumentException("this timeInterval intersects another one");
             }
 
