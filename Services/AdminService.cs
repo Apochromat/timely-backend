@@ -135,7 +135,7 @@ namespace timely_backend.Services {
             Lesson.Teacher = teacher;
             Lesson.Classroom = classroom;
             Lesson.Date = lesson.Date;
-            Lesson.ChainId = lesson.ChainId;
+            
 
             await _context.SaveChangesAsync();
         }
@@ -177,7 +177,7 @@ namespace timely_backend.Services {
                 chain.Teacher = teacher;
                 chain.Classroom = classroom;
                 chain.Date = chain.Date.AddDays((lesson.Date.Date - Lesson.Date.Date).TotalDays);
-                chain.ChainId = lesson.ChainId;
+                
 
                 sameLesson = await _context.Lessons.Include(x => x.Group).Include(x => x.Teacher).Include(x => x.Tag).Include(x => x.Name).Include(x => x.TimeInterval).Include(x => x.Classroom).FirstOrDefaultAsync(x => x.Teacher == teacher && x.TimeInterval == timeInterval && x.Date.Date == chain.Date.Date);
                 if (sameLesson != null && sameLesson.Id != chain.Id) {
